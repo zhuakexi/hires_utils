@@ -20,13 +20,20 @@ def cli():
                             default=20,
                             help="set thread number")
     clean_legs_out = clean_legs.add_mutually_exclusive_group(required=True)
-    clean_legs_out.add_argument("-s", "--replace", dest="replace_switch", action="store_true", default=False,\
-                                help="do clean in-place and replace input file")
-    clean_legs_out.add_argument("-o", "--output", dest="out_name", action="store",\
-                                help="set output file name")
+    clean_legs_out.add_argument("-s", "--replace", 
+                            dest="replace_switch", 
+                            action="store_true", 
+                            default=False,
+                            help="do clean in-place and replace input file")
+    clean_legs_out.add_argument("-o", "--output", 
+                            dest="out_name", action="store",
+                            help="set output file name")
 
     #clean_splicing sub command
-    clean_splicing = subcommands.add_parser("clean_splicing", help="clean exon splicing from mRNA in contact file")
+    clean_splicing = subcommands.add_parser(
+                            "clean_splicing", 
+                            help="clean exon splicing from mRNA in contact file")
+    clean_splicing.set_defaults(handle=clean_splicing_main)
     clean_splicing.add_argument("-r", "--reference", dest="index_file_name", help="exon index file, use 'build' sub-command\
     to build from scratch.", required=True)
     clean_splicing_out = clean_splicing.add_mutually_exclusive_group(required=True)
@@ -36,9 +43,9 @@ def cli():
     #print(args.replace_switch)
     #print(args.out_name)
     #print(args.filenames)
-    if hasattr(parser, handle):
+    if hasattr(args, "handle"):
         args.handle(args)
     else:
-        parser.pring_help()
+        parser.print_help()
 if __name__ == "__main__":
     cli()
