@@ -2,4 +2,9 @@
 raw/
 out/
 ref/
+#on python & IDE
+__pycache__/
+.pydevproject
+.project
+.vscode/
 
