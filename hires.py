@@ -1,5 +1,6 @@
 import argparse
 from clean_pairs import clean_leg_main
+from clean_splicing import clean_splicing_main
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions working on 4DN's .pairs files")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -34,11 +35,33 @@ def cli():
                             "clean_splicing", 
                             help="clean exon splicing from mRNA in contact file")
     clean_splicing.set_defaults(handle=clean_splicing_main)
-    clean_splicing.add_argument("-r", "--reference", dest="index_file_name", help="exon index file, use 'build' sub-command\
-    to build from scratch.", required=True)
+    clean_splicing.add_argument(
+                            dest="filenames",
+                            metavar="INPUT_FILE",
+                            help="input filename",
+                            nargs=1)       
+    clean_splicing.add_argument(
+                            "-r", "--reference", 
+                            dest="index_file_name", 
+                            help="exon index file, use 'build' sub-command to build from scratch.", 
+                            default="bin_10k_FULL_index")
+    clean_splicing.add_argument(
+                            "-b", "--binsize",
+                            dest="binsize",
+                            type=int,
+                            default=10000)  
     clean_splicing_out = clean_splicing.add_mutually_exclusive_group(required=True)
-    clean_splicing_out.add_argument("-s", "--replace", dest="replace_switch", help="do clean in-place", action="store_true", default=False)
-    clean_splicing_out.add_argument("-o", "--output", dest="out_name", help="output file name", action="store")
+    clean_splicing_out.add_argument(
+                            "-s", "--replace", 
+                            dest="replace_switch", 
+                            help="do clean in-place", 
+                            action="store_true", 
+                            default=False)
+    clean_splicing_out.add_argument(
+                            "-o", "--output", 
+                            dest="out_name", 
+                            help="output file name", 
+                            action="store")
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
