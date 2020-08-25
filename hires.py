@@ -1,8 +1,9 @@
 import argparse
 from clean_pairs import clean_leg_main
 from clean_splicing import clean_splicing_main
+from align import align_main
 def cli():
-    parser = argparse.ArgumentParser(prog="hires", description="Functions working on 4DN's .pairs files")
+    parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
     #clean_legs sub command
     clean_legs = subcommands.add_parser(
@@ -62,6 +63,25 @@ def cli():
                             dest="out_name", 
                             help="output file name", 
                             action="store")
+    #align subcommand
+    align = subcommands.add_parser(
+                            "align",
+                            help="caculate rmsd between .3dg replicates"
+    )
+    align.set_defaults(handle=align_main)
+    align.add_argument(
+                            dest="filenames",
+                            metavar="INPUT_FILE",
+                            help="input filename",
+                            nargs="*"
+    )
+    align.add_argument(
+                            "-o","--output_prefix",
+                            dest="output_prefix",
+                            type=str,
+                            default=""
+    )
+    
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
