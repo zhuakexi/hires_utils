@@ -1,5 +1,5 @@
 import argparse
-from clean_pairs import clean_leg_main
+from clean_leg import clean_leg_main
 from clean_splicing import clean_splicing_main
 from align import align_main
 def cli():
