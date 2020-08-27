@@ -2,6 +2,7 @@ import argparse
 from clean_leg import clean_leg_main
 from clean_splicing import clean_splicing_main
 from align import align_main
+from clean_isolated import clean_isolated_main
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -81,7 +82,23 @@ def cli():
                             type=str,
                             default=""
     )
-    
+    clean_isolated = subcommands.add_parser(
+                            "clean_isolated",
+                            help="remove isolated contacts according to L-0.5 distance"
+    )
+    clean_isolated.set_defaults(handle=clean_isolated_main)
+    clean_isolated.add_argument(
+                            dest="filenames",
+                            metavar="INPUT_FILE",
+                            help="input filename",
+                            nargs=1
+    )      
+    clean_isolated.add_argument(
+                            "-o","--output",
+                            dest="output_file",
+                            type=str,
+                            required=True
+    )                 
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
