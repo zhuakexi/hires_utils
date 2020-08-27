@@ -98,6 +98,12 @@ def cli():
                             dest="output_file",
                             type=str,
                             required=True
+    )
+    clean_isolated.add_argument(
+                            "-t","--thread",
+                            dest="thread",
+                            type=int,
+                            default=23
     )                 
     args = parser.parse_args()
     #print(args.replace_switch)
