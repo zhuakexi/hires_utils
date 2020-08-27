@@ -1,6 +1,11 @@
+from concurrent import futures
+import sys
+import time
+import pandas as pd
 import numpy as np
 from hires_io import pairs_parser
 from hires_io import write_pairs
+
 
 def L_half(contact1, contact2):
     '''
@@ -18,7 +23,7 @@ def L_half(contact1, contact2):
     else:
         #print(np.inf,contact1)
         return np.inf
-
+'''
 def is_isolated(contact:"line",cell:"dict of dataframe")->bool:
     key = tuple( sorted([contact["chr1"],contact["chr2"]]) )
     count = cell[key].apply(L_half, axis=1, contact2=contact) < 10000000
@@ -26,20 +31,39 @@ def is_isolated(contact:"line",cell:"dict of dataframe")->bool:
     #print(count.astype(np.int8).sum())
     return count.astype(np.int8).sum()< (5+1)
 def clean_contacts(contacts:"dataframe",cell:"dict of dataframe")->"two dataframe":
+    
+    #for multiplexing
+
+    mask = contacts.apply(is_isolated, axis=1, cell=cell)
+    return contacts[~mask], contacts[mask]
+'''
+def is_isolated_in_pair(contact:"line",ref:"dataframe")->bool:
+    '''
+    reference pre-paired with contact;
+    smaller reference for better ram performence
+    '''
+    count = ref.apply(L_half, axis=1, contact2=contact) < 10000000
+    #print("proxy num:",count.astype(np.int8).sum())
+    #5+1 because contact is also in ref 
+    return count.astype(np.int8).sum()< (5+1)
+def clean_contacts_in_pair(contacts:"dataframe",ref:"dataframe")->"two dataframe":
     '''
     for multiplexing
     '''
-    mask = contacts.apply(is_isolated, axis=1, cell=cell)
-    return contacts[~mask], contacts[mask]
+    mask = contacts.apply(is_isolated_in_pair, axis=1, ref=ref)
+    sys.stderr.write("%s %s %d --> %d" %(ref.iloc[0]["chr1"], ref.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
+    return contacts[~mask]
+def working_func(args):
+    return clean_contacts_in_pair(args[0],args[1])
 def clean_isolated_main(args):
-    in_name, out_name = args.filenames[0], args.output_file
+    in_name, out_name, num_thread = args.filenames[0], args.output_file, args.thread
     cell = pairs_parser(in_name)
-    paired_chromosomes = { key:value for key, value in cell.groupby(["chr1","chr2"]) }
-    
-    '''
-    blocks = np.array_split(cell, 1000000, axis=0)
-    cleaned, hit = clean_contacts(blocks[0], paired_chromosomes)
-    '''
-    input_data = cell.iloc[0:3]
-    cleaned, hit = clean_contacts(input_data, paired_chromosomes)
+    #paired_chromosomes = { key:value for key, value in cell.groupby(["chr1","chr2"]) }
+    t0 = time.time()
+    input_data = ( (value,value) for key, value in cell.groupby(["chr1","chr2"]) )
+    with futures.ProcessPoolExecutor(num_thread) as executor:
+        res = executor.map(working_func, input_data)
+    cleaned = pd.concat(res,axis=0)
+    sys.stderr.write("clean_isolated: finished in %.2fs"%(time.time()-t0))
+    write_pairs(cleaned, in_name, out_name)
     return cleaned
