@@ -9,6 +9,8 @@ pylint = "*"
 [packages]
 pandas = "*"
 rmsd = "*"
+ipykernel = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.8"
