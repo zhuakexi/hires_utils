@@ -8,3 +8,6 @@ __pycache__/
 .project
 .vscode/
 
+#on jupyter notebook
+*.ipynb
+.ipynb_checkpoints/
