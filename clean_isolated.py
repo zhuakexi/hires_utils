@@ -1,8 +1,12 @@
 from concurrent import futures
 import sys
 import time
+import bisect
+from functools import partial
+
 import pandas as pd
 import numpy as np
+
 from hires_io import pairs_parser
 from hires_io import write_pairs
 
@@ -23,44 +27,44 @@ def L_half(contact1, contact2):
     else:
         #print(np.inf,contact1)
         return np.inf
-'''
-def is_isolated(contact:"line",cell:"dict of dataframe")->bool:
-    key = tuple( sorted([contact["chr1"],contact["chr2"]]) )
-    count = cell[key].apply(L_half, axis=1, contact2=contact) < 10000000
-    print("proxy num:",count.astype(np.int8).sum())
-    #print(count.astype(np.int8).sum())
-    return count.astype(np.int8).sum()< (5+1)
-def clean_contacts(contacts:"dataframe",cell:"dict of dataframe")->"two dataframe":
-    
-    #for multiplexing
 
-    mask = contacts.apply(is_isolated, axis=1, cell=cell)
-    return contacts[~mask], contacts[mask]
-'''
-def is_isolated_in_pair(contact:"line",ref:"dataframe")->bool:
+def is_isolate(contact, sorted_contacts:"dataframe", up_dense, up_distance)->bool:
     '''
-    reference pre-paired with contact;
-    smaller reference for better ram performence
+    #calc in pos2-aixs strip
+    #check if contact is isolated, work on one chromosome pair
+    #contacts sorted by pos1 without index
+    #if two contact pos1 Eu distance > up_distance then L-0.5 distance > up_distance
     '''
-    count = ref.apply(L_half, axis=1, contact2=contact) < 10000000
-    #print("proxy num:",count.astype(np.int8).sum())
-    #5+1 because contact is also in ref 
-    return count.astype(np.int8).sum()< (5+1)
-def clean_contacts_in_pair(contacts:"dataframe",ref:"dataframe")->"two dataframe":
+    proximity = 0
+    index = bisect.bisect_right(sorted_contacts["pos1"], contact["pos1"])
+    for _, con in sorted_contacts.iloc[index-1::-1].iterrows():
+        if abs(con["pos1"]-contact["pos1"]) > up_distance:
+            break
+        if L_half(con,contact) < up_distance:
+            proximity += 1 
+    for _, con in sorted_contacts.iloc[index:].iterrows():
+        if abs(con["pos1"]-contact["pos1"]) > up_distance:
+            break
+        if L_half(con,contact) < up_distance:
+            proximity += 1 
+    return proximity < up_dense + 1
+def clean_contacts_in_pair(contacts:"dataframe", up_dense, up_distance)->"dataframe":
     '''
-    for multiplexing
+    #for multiplexing
     '''
-    mask = contacts.apply(is_isolated_in_pair, axis=1, ref=ref)
-    sys.stderr.write("%s %s %d --> %d" %(ref.iloc[0]["chr1"], ref.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
+    sorted_contacts = contacts.sort_values(by="pos1",axis=0,ignore_index=True)
+    mask = contacts.apply(is_isolate, axis=1, sorted_contacts = sorted_contacts,
+                          up_dense=up_dense, up_distance=up_distance)
+    sys.stderr.write("%s %s %d --> %d" %(contacts.iloc[0]["chr1"], contacts.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
     return contacts[~mask]
-def working_func(args):
-    return clean_contacts_in_pair(args[0],args[1])
 def clean_isolated_main(args):
-    in_name, out_name, num_thread = args.filenames[0], args.output_file, args.thread
+    in_name, out_name, num_thread, up_dense, up_distance = \
+        args.filenames[0], args.output_file, args.thread, args.dense, args.distance
     cell = pairs_parser(in_name)
     #paired_chromosomes = { key:value for key, value in cell.groupby(["chr1","chr2"]) }
     t0 = time.time()
-    input_data = ( (value,value) for key, value in cell.groupby(["chr1","chr2"]) )
+    input_data = ( value for key, value in cell.groupby(["chr1","chr2"]) )
+    working_func = partial(clean_contacts_in_pair, up_dense, up_distance)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     cleaned = pd.concat(res,axis=0)
