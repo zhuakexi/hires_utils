@@ -30,7 +30,7 @@ def L_half(contact1, contact2):
 
 def is_isolate(contact, sorted_contacts:"dataframe", up_dense, up_distance)->bool:
     '''
-    #calc in pos2-aixs strip
+    #two_way_search version, calc in pos2-aixs strip
     #check if contact is isolated, work on one chromosome pair
     #contacts sorted by pos1 without index
     #if two contact pos1 Eu distance > up_distance then L-0.5 distance > up_distance
@@ -61,10 +61,9 @@ def clean_isolated_main(args):
     in_name, out_name, num_thread, up_dense, up_distance = \
         args.filenames[0], args.output_file, args.thread, args.dense, args.distance
     cell = pairs_parser(in_name)
-    #paired_chromosomes = { key:value for key, value in cell.groupby(["chr1","chr2"]) }
     t0 = time.time()
     input_data = ( value for key, value in cell.groupby(["chr1","chr2"]) )
-    working_func = partial(clean_contacts_in_pair, up_dense, up_distance)
+    working_func = partial(clean_contacts_in_pair, up_dense=up_dense, up_distance=up_distance)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     cleaned = pd.concat(res,axis=0)
