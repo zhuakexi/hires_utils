@@ -55,7 +55,7 @@ def clean_contacts_in_pair(contacts:"dataframe", up_dense, up_distance)->"datafr
     sorted_contacts = contacts.sort_values(by="pos1",axis=0,ignore_index=True)
     mask = contacts.apply(is_isolate, axis=1, sorted_contacts = sorted_contacts,
                           up_dense=up_dense, up_distance=up_distance)
-    sys.stderr.write("%s %s %d --> %d" %(contacts.iloc[0]["chr1"], contacts.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
+    sys.stderr.write("(%s, %s): %d --> %d\n" %(contacts.iloc[0]["chr1"], contacts.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
     return contacts[~mask]
 def clean_isolated_main(args):
     in_name, out_name, num_thread, up_dense, up_distance = \
