@@ -82,6 +82,7 @@ def cli():
                             type=str,
                             default=""
     )
+    #clean_isolate subcommand
     clean_isolated = subcommands.add_parser(
                             "clean_isolated",
                             help="remove isolated contacts according to L-0.5 distance"
@@ -104,7 +105,19 @@ def cli():
                             dest="thread",
                             type=int,
                             default=23
-    )                 
+    )     
+    clean_isolated.add_argument(
+                            "-m","--dense",
+                            dest="dense",
+                            type=int,
+                            help="number of contacts in proximity",
+                            default=5)
+    clean_isolated.add_argument(
+                           "-d","--distance",
+                            dest="distance",
+                            type=int,
+                            help="check contacts in what L-0.5 range",
+                            default=10000000)           
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
