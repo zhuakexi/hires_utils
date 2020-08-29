@@ -22,6 +22,24 @@ def cli():
                             action="store",
                             default=20,
                             help="set thread number")
+    clean_legs.add_argument(
+                            "-d","--distance",
+                            dest="max_distance",
+                            metavar="MAX_DISTANCE",
+                            type=int,
+                            action="store",
+                            default=1000,
+                            help="max distance to calculate adjacent legs"
+    )
+    clean_legs.add_argument(
+                            "-n","--count",
+                            metavar="MAX_COUNT",
+                            dest="max_count",
+                            type=int,
+                            action="store",
+                            default=10,
+                            help="number threshold of adjacent legs"
+    )                   
     clean_legs_out = clean_legs.add_mutually_exclusive_group(required=True)
     clean_legs_out.add_argument("-s", "--replace", 
                             dest="replace_switch", 
