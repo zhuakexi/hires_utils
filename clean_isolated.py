@@ -31,12 +31,12 @@ def is_isolate(contact, sorted_contacts:"dataframe", up_dense, up_distance)->boo
     for con in sorted_contacts.iloc[index-1::-1].itertuples(index=False):
         if abs(con.pos1-contact.pos1) > up_distance or proximity >= up_dense+1:
             break
-        if L_half(con,contact) < up_distance:
+        if L_half(con,contact) <= up_distance:
             proximity += 1 
     for con in sorted_contacts.iloc[index:].itertuples(index=False):
         if abs(con.pos1-contact.pos1) > up_distance or proximity >= up_dense+1:
             break
-        if L_half(con,contact) < up_distance:
+        if L_half(con,contact) <= up_distance:
             proximity += 1 
     return proximity < up_dense + 1
 def clean_contacts_in_pair(contacts:"dataframe", up_dense, up_distance)->"dataframe":
