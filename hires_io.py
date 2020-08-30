@@ -29,4 +29,4 @@ def write_pairs(data:"dataframe",in_name:str, out_name:str):
         head = "".join(head)
     with gzip.open(out_name,"wt") as f:
         f.write(head)
-        data.to_csv(out_name, sep="\t", header=False, index=False, mode="a")
+        data.to_csv(f, sep="\t", header=False, index=False, mode="a")
