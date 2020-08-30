@@ -15,7 +15,7 @@ def pairs_parser(cell_name:str)->"dataframe":
     column_names = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
     pairs = pd.read_table(cell_name, header=None,skiprows=27)
     pairs.columns = column_names
-    sys.stderr.write("pairs_parser parsing time: %.2fs\n"%(time.time()-t0))
+    sys.stderr.write("pairs_parser: parsing in %.2fs\n"%(time.time()-t0))
     return pairs
 def write_pairs(data:"dataframe",in_name:str, out_name:str):
     '''
