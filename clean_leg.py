@@ -3,8 +3,10 @@ import numpy as np
 import sys
 import time
 import gzip
+import bisect
 from concurrent import futures
 from functools import partial
+from collections import namedtuple
 
 from hires_io import pairs_parser
 from hires_io import write_pairs
@@ -12,18 +14,28 @@ from hires_io import write_pairs
 default 4DN .pairs format
 READID, chr1, pos1, chr2, pos2, STRAND1, STRAND2 = 0,1,2,3,4,5,6
 '''
-def is_promiscuous(contact:"line", all_legs:dict, max_distance, max_count)->bool:
+def is_leg_promiscuous(leg, sorted_legs:dict, max_distance, max_count):
     '''
-    say if either of contact's leg is promiscuous by check leg dictionary
-    Too slow! Only for small data set.
+    tell if one leg is promiscuous
+    using Tan's phantom leg method
     '''
-    #adjacent legs from the view of leg leg
-    hit_left = np.abs(all_legs[contact["chr1"]]["pos"] - contact["pos1"]) < max_distance
-    #adjacent legs from the view of right leg
-    hit_right = np.abs(all_legs[contact["chr2"]]["pos"] - contact["pos2"]) < max_distance
-    return (hit_left.astype(np.int8).sum() > max_count) or (hit_right.astype(np.int8).sum() > max_count)
-def clean_promiscuous(contacts:"dataframe", all_legs:dict, thread:int, max_distance, max_count)->"dataframe":
-    mask = contacts.apply(is_promiscuous, axis=1, all_legs=all_legs, max_distance=max_distance, max_count=max_count)
+    this_chromosome = sorted_legs[leg.chr]
+    left_end = bisect.bisect_left(this_chromosome["pos"], leg.pos - max_distance)
+    right_stretch = left_end + max_count
+    if right_stretch >= len(this_chromosome):
+        return False
+    return this_chromosome.iloc[right_stretch]["pos"] - leg.pos <= max_distance 
+def is_promiscuous(contact:"line", sorted_legs:dict, max_distance, max_count)->bool:
+    '''
+    tell if one contact is promiscuous
+    '''
+    Leg = namedtuple("Leg", "chr pos")
+    leg1, leg2 = Leg(contact["chr1"], contact["pos1"]), Leg(contact["chr2"], contact["pos2"])
+    hit = partial(is_leg_promiscuous, sorted_legs=sorted_legs, max_distance=max_distance, max_count=max_count)
+    return hit(leg1) or hit(leg2)
+def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_distance, max_count)->"dataframe":
+    #wrapper for multi-thread processing
+    mask = contacts.apply(is_promiscuous, axis=1, sorted_legs=sorted_legs, max_distance=max_distance, max_count=max_count)
     sys.stderr.write("clean_leg: 1/%d chunk done\n"%thread)
     return contacts[~mask]
 def clean_leg_main(args):
@@ -37,12 +49,13 @@ def clean_leg_main(args):
     left, right = cell[["chr1","pos1"]], cell[["chr2","pos2"]]
     left.columns, right.columns = ("chr","pos"),("chr","pos")
     all_legs = pd.concat((left,right),axis=0,ignore_index=True)
-    all_legs = {key:value for key, value in all_legs.groupby("chr")}
-    sys.stderr.write("clean_leg: calculating in %.2fs\n"%(time.time()-t0))
+    sorted_legs = {key:value.sort_values(by="pos",axis=0,ignore_index=True) for key, value in all_legs.groupby("chr")}
+    sys.stderr.write("clean_leg: group sort in %.2fs\n"%(time.time()-t0))
     #multithread filtering
     t0=time.time()
     input = np.array_split(cell, num_thread, axis=0)
-    working_func = partial(clean_promiscuous,all_legs=all_legs, thread=num_thread, max_distance=max_distance, max_count=max_count)
+    working_func = partial(clean_promiscuous,sorted_legs=sorted_legs, 
+                           thread=num_thread, max_distance=max_distance, max_count=max_count)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input)
     result = pd.concat(res,axis=0)
@@ -51,4 +64,6 @@ def clean_leg_main(args):
     if replace == True:
         out_name = cell_name
     write_pairs(result, cell_name, out_name)
+    return result
+
     
