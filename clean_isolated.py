@@ -58,6 +58,7 @@ def clean_isolated_main(args):
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     cleaned = pd.concat(res,axis=0)
+    sys.stderr.write("clean_isolated: %d from %d contacts removed." % (len(cell)-len(cleaned),len(cell)))
     sys.stderr.write("clean_isolated: finished in %.2fs\n"%(time.time()-t0))
     write_pairs(cleaned, in_name, out_name)
     return cleaned
