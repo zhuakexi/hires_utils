@@ -1,28 +1,28 @@
 import argparse
 import clean_leg
-from clean_splicing import clean_splicing_main
+import clean_splicing
 from align import align_main
 from clean_isolated import clean_isolated_main
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
     #clean_legs sub command
-    clean_legs = subcommands.add_parser(
+    clean_leg_arg = subcommands.add_parser(
                             "clean_leg",
                             help="clean promiscuous legs that contacts with multiple legs")
-    clean_legs.set_defaults(handle=clean_leg.cli)
-    clean_legs.add_argument(
+    clean_leg_arg.set_defaults(handle=clean_leg.cli)
+    clean_leg_arg.add_argument(
                             dest="filenames",
                             metavar="INPUT_FILE",
                             nargs="*")
-    clean_legs.add_argument(
+    clean_leg_arg.add_argument(
                             "-t", "--thread",
                             type=int,
                             dest="thread",
                             action="store",
                             default=20,
                             help="set thread number")
-    clean_legs.add_argument(
+    clean_leg_arg.add_argument(
                             "-d","--distance",
                             dest="max_distance",
                             metavar="MAX_DISTANCE",
@@ -31,7 +31,7 @@ def cli():
                             default=1000,
                             help="max distance to calculate adjacent legs"
     )
-    clean_legs.add_argument(
+    clean_leg_arg.add_argument(
                             "-n","--count",
                             metavar="MAX_COUNT",
                             dest="max_count",
@@ -40,50 +40,57 @@ def cli():
                             default=10,
                             help="number threshold of adjacent legs"
     )     
-    clean_legs.add_argument(
+    clean_leg_arg.add_argument(
                             "-b","--batch",
                             dest="batch_switch",
                             action="store_true",
                             default=False,
                             help="batch mode, -o for output directory, FILENAME for cell list file"
     )              
-    clean_legs_out = clean_legs.add_mutually_exclusive_group(required=True)
-    clean_legs_out.add_argument("-s", "--replace", 
+    clean_leg_arg_out = clean_leg_arg.add_mutually_exclusive_group(required=True)
+    clean_leg_arg_out.add_argument("-s", "--replace", 
                             dest="replace_switch", 
                             action="store_true", 
                             default=False,
                             help="do clean in-place and replace input file")
-    clean_legs_out.add_argument("-o", "--output", 
+    clean_leg_arg_out.add_argument("-o", "--output", 
                             dest="out_name", action="store",
                             help="set output file name, or output file appendix for multiple file")
     #clean_splicing sub command
-    clean_splicing = subcommands.add_parser(
+    clean_splicing_arg = subcommands.add_parser(
                             "clean_splicing", 
                             help="clean exon splicing from mRNA in contact file")
-    clean_splicing.set_defaults(handle=clean_splicing_main)
-    clean_splicing.add_argument(
+    clean_splicing_arg.set_defaults(handle=clean_splicing.cli)
+    clean_splicing_arg.add_argument(
                             dest="filenames",
                             metavar="INPUT_FILE",
                             help="input filename",
-                            nargs=1)       
-    clean_splicing.add_argument(
+                            nargs="*")     
+    clean_splicing_arg.add_argument(
                             "-r", "--reference", 
                             dest="index_file_name", 
                             help="exon index file, use 'build' sub-command to build from scratch.", 
                             default="bin_10k_FULL_index")
-    clean_splicing.add_argument(
-                            "-b", "--binsize",
+    clean_splicing_arg.add_argument(
+                            "-bin", "--binsize",
                             dest="binsize",
                             type=int,
-                            default=10000)  
-    clean_splicing_out = clean_splicing.add_mutually_exclusive_group(required=True)
-    clean_splicing_out.add_argument(
+                            default=10000)
+    clean_splicing_arg.add_argument(
+                            "-b", "--batch",
+                            dest="batch_switch",
+                            action="store_true",
+                            default=False,
+                            help="batch mode, give more files or one list file"
+    )                           
+    clean_splicing_arg_out = clean_splicing_arg.add_mutually_exclusive_group(required=True)
+    clean_splicing_arg_out.add_argument(
                             "-s", "--replace", 
                             dest="replace_switch", 
                             help="do clean in-place", 
                             action="store_true", 
                             default=False)
-    clean_splicing_out.add_argument(
+    clean_splicing_arg_out.add_argument(
                             "-o", "--output", 
                             dest="out_name", 
                             help="output file name", 
