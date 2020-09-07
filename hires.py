@@ -78,12 +78,12 @@ def cli():
                             type=int,
                             default=10000)
     clean_splicing_arg.add_argument(
-                            "-b", "--batch",
-                            dest="batch_switch",
+                            "-p","--parallel",
+                            dest="parallel_switch",
                             action="store_true",
                             default=False,
-                            help="batch mode, give more files or one list file"
-    )                           
+                            help="parallel mode, give more input files or one list file, using all cpu cores allocated."
+    )                                  
     clean_splicing_arg_out = clean_splicing_arg.add_mutually_exclusive_group(required=True)
     clean_splicing_arg_out.add_argument(
                             "-s", "--replace", 
