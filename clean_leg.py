@@ -42,7 +42,7 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
 def cli(args):
     filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch = \
         args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch
-    if filenames > 1:
+    if len(filenames) > 1:
         for cell_name in filenames:
             if replace == True:
                 #--replace will work in multi file input
@@ -58,13 +58,23 @@ def cli(args):
             raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
         #in batch mode, filenames is parsed a name list file, by line
         with open(filenames[0]) as f:
-            filenames = f.readlines()
+            filenames = [line.strip() for line in f.readlines()]
+        if out_name[-1] != "/":
+            #not directory but out name list file
+            with open(out_name) as f:
+                outlist = [line.strip() for line in f.readlines()]
+            if len(outlist) != len(filenames):
+                raise argparse.ArgumentError(None, "using out name list now: outlist must be same length with inlist.")
+            else:
+                for i, cell_name in enumerate(filenames):
+                    the_out_name = outlist[i]
+                    return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
         for cell_name in filenames:
             if replace == True:
                 the_out_name = cell_name
             else:
                 #using --outname as out directory
-                the_out_name = out_name + cell_name
+                the_out_name = out_name + cell_name.split("/")[-1]
             return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
     #neither multi filenames nor batch mode
     if replace == True:
