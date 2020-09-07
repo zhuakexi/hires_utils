@@ -46,14 +46,13 @@ def cli(args):
         for cell_name in filenames:
             if replace == True:
                 #--replace will work in multi file input
-                out_name = cell_name
+                the_out_name = cell_name
             else:
                 #--out_name will be used as name appendix: xx.appendix.pairs.gz 
-                out_appendix = out_name
-                out_name = cell_name.split(".")
-                out_name.insert(1,out_appendix)
-                out_name = ".".join(out_name)
-            return clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count)
+                the_out_name = cell_name.split(".")
+                the_out_name.insert(1,out_name)
+                the_out_name = ".".join(the_out_name)
+            return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
     if batch_switch == True:
         if len(filenames) > 1:
             raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
@@ -62,19 +61,16 @@ def cli(args):
             filenames = f.readlines()
         for cell_name in filenames:
             if replace == True:
-                out_name = cell_name
+                the_out_name = cell_name
             else:
-                #using --outname as appendix
-                out_appendix = out_name
-                out_name = cell_name.split(".")
-                out_name.insert(1,out_appendix)
-                out_name = ".".join(out_name)
-            return clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count)
+                #using --outname as out directory
+                the_out_name = out_name + cell_name
+            return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
     #neither multi filenames nor batch mode
     if replace == True:
         #--replace in single file case
-        out_name = cell_name    
-    return clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count)
+        the_out_name = cell_name    
+    return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
 def clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count):
     t0 = time.time()
     #read data file
