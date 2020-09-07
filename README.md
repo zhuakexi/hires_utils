@@ -1,5 +1,5 @@
 # hires-utils
-### tool for scHi-C data cleaning
+### scHi-C data wrangling tools
 ## Installation
 No package now, use git.
 ```
