@@ -9,6 +9,7 @@ import numpy as np
 
 from hires_io import pairs_parser
 from hires_io import write_pairs
+from batch import batch
 
 
 def L_half(contact1, contact2):
@@ -48,9 +49,35 @@ def clean_contacts_in_pair(contacts:"dataframe", up_dense, up_distance)->"datafr
                           up_dense=up_dense, up_distance=up_distance)
     sys.stderr.write("(%s, %s): %d --> %d\n" %(contacts.iloc[0]["chr1"], contacts.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
     return contacts[~mask]
-def clean_isolated_main(args):
-    in_name, out_name, num_thread, up_dense, up_distance = \
-        args.filenames[0], args.output_file, args.thread, args.dense, args.distance
+def cli(args):
+    filenames, out_name, num_thread, up_dense, up_distance, batch_switch, replace = \
+        args.filenames, args.output_file, args.thread, args.dense, args.distance, args.batch_switch, args.replace_switch
+    #case1: multi mode. multiple in files begin a loop 
+    if len(filenames) > 1:
+        for cell_name in filenames:
+            if replace == True:
+                #--replace will work in multi file input
+                the_out_name = cell_name
+            else:
+                #--out_name will be used as name appendix: xx.appendix.pairs.gz 
+                the_out_name = cell_name.split(".")
+                the_out_name.insert(1,out_name)
+                the_out_name = ".".join(the_out_name)
+            clean_isolated_main(cell_name,the_out_name,  num_thread, up_dense, up_distance)
+        return 0
+    #case2: in batch mode. call batch function to do loop
+    if batch_switch == True:
+        working_func = partial(clean_isolated_main, num_thread=num_thread, up_dense=up_dense, up_distance=up_distance)
+        batch(working_func, filenames, out_name, replace)
+    #case3: in single mode. run once.
+    cell_name = filenames[0]
+    if replace == True:
+        the_out_name = cell_name
+    else:
+        the_out_name = out_name    
+    clean_isolated_main(cell_name,the_out_name,  num_thread, up_dense, up_distance)
+    return 0
+def clean_isolated_main(in_name, out_name, num_thread, up_dense, up_distance):
     cell = pairs_parser(in_name)
     t0 = time.time()
     input_data = ( value for key, value in cell.groupby(["chr1","chr2"]) )
