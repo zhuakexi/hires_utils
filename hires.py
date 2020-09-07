@@ -1,8 +1,9 @@
 import argparse
 import clean_leg
 import clean_splicing
+import clean_isolated
 from align import align_main
-from clean_isolated import clean_isolated_main
+
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -114,41 +115,56 @@ def cli():
                             default=""
     )
     #clean_isolate subcommand
-    clean_isolated = subcommands.add_parser(
+    clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
                             help="remove isolated contacts according to L-0.5 distance"
     )
-    clean_isolated.set_defaults(handle=clean_isolated_main)
-    clean_isolated.add_argument(
+    clean_isolated_arg.set_defaults(handle=clean_isolated.cli)
+    clean_isolated_arg.add_argument(
                             dest="filenames",
                             metavar="INPUT_FILE",
                             help="input filename",
-                            nargs=1
-    )      
-    clean_isolated.add_argument(
-                            "-o","--output",
-                            dest="output_file",
-                            type=str,
-                            required=True
+                            nargs="*"
     )
-    clean_isolated.add_argument(
+    clean_isolated_arg.add_argument(
+                            "-b","--batch",
+                            dest="batch_switch",
+                            action="store_true",
+                            help="batch mode, give more files or one list file",
+                            default=False
+    )      
+
+    clean_isolated_arg.add_argument(
                             "-t","--thread",
                             dest="thread",
                             type=int,
                             default=23
     )     
-    clean_isolated.add_argument(
+    clean_isolated_arg.add_argument(
                             "-m","--dense",
                             dest="dense",
                             type=int,
                             help="number of contacts in proximity",
                             default=5)
-    clean_isolated.add_argument(
+    clean_isolated_arg.add_argument(
                            "-d","--distance",
                             dest="distance",
                             type=int,
                             help="check contacts in what L-0.5 range",
-                            default=10000000)           
+                            default=10000000) 
+    clean_isolated_arg_out = clean_isolated_arg.add_mutually_exclusive_group(required=True)
+    clean_isolated_arg_out.add_argument(
+                            "-o","--output",
+                            dest="output_file",
+                            type=str
+    )
+    clean_isolated_arg_out.add_argument(
+                            "-r","--replace",
+                            dest="replace_switch",
+                            action="store_true",
+                            default=False
+    )   
+
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)

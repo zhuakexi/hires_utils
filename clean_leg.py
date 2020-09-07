@@ -56,36 +56,6 @@ def cli(args):
                 the_out_name = ".".join(the_out_name)
             clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
         return 0
-    '''
-    if batch_switch == True:
-        if len(filenames) > 1:
-            raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
-        #in batch mode, filenames is parsed a name list file, by line
-        with open(filenames[0]) as f:
-            filenames = [line.strip() for line in f.readlines()]
-        if out_name[-1] != "/":
-            #not directory but out name list file
-            with open(out_name) as f:
-                outlist = [line.strip() for line in f.readlines()]
-            if len(outlist) != len(filenames):
-                raise argparse.ArgumentError(None, "using out name list now: outlist must be same length with inlist.")
-            else:
-                #case1: -b, outlist and inlist good, begin loop 
-                for i, cell_name in enumerate(filenames):
-                    the_out_name = outlist[i]
-                    sys.stderr.write("batch clean leg: working on %s\n"%cell_name)
-                    clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
-                return 0
-        #case2: -b, not outlist but out directory/replace, begin loop
-        for cell_name in filenames:
-            if replace == True:
-                the_out_name = cell_name
-            else:
-                #using --outname as out directory
-                the_out_name = out_name + cell_name.split("/")[-1]
-            clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
-        return 0
-    '''
     #case2: in batch mode. call batch function to do loop
     if batch_switch == True:
         working_func = partial(clean_leg_main,num_thread=num_thread, max_distance=max_distance, max_count=max_count)
