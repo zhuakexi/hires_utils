@@ -54,6 +54,7 @@ def cli(args):
                 the_out_name.insert(1,out_name)
                 the_out_name = ".".join(the_out_name)
             clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+        return 0
     if batch_switch == True:
         if len(filenames) > 1:
             raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
@@ -72,20 +73,23 @@ def cli(args):
                     the_out_name = outlist[i]
                     sys.stderr.write("batch clean leg: working on %s\n"%cell_name)
                     clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+                return 0
+        #case2: -b, not outlist but out directory/replace, begin loop
         for cell_name in filenames:
-            #case2: -b, not outlist but out directory/replace, begin loop
             if replace == True:
                 the_out_name = cell_name
             else:
                 #using --outname as out directory
                 the_out_name = out_name + cell_name.split("/")[-1]
             clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+        return 0
     #case3: neither multi filenames nor batch mode
     cell_name = filenames[0]
     if replace == True:
         #--replace in single file case
         the_out_name = cell_name    
     clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+    return 0
 def clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count):
     t0 = time.time()
     #read data file
