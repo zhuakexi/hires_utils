@@ -1,11 +1,11 @@
-#hires-utils
-###tool for scHi-C data cleaning
-##Installation
+# hires-utils
+### tool for scHi-C data cleaning
+## Installation
 No package now, use git.
 ```
 git clone https://github.com/zhuakexi/hires-utils.git
 ```
-##Usage
+## Usage
 Unix style, with subcommand.
 Works with python3.
 ```
