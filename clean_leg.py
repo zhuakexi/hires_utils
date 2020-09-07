@@ -43,6 +43,7 @@ def cli(args):
     filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch = \
         args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch
     if len(filenames) > 1:
+        #case4: not batch mode, but multi infile, begin loop
         for cell_name in filenames:
             if replace == True:
                 #--replace will work in multi file input
@@ -52,7 +53,7 @@ def cli(args):
                 the_out_name = cell_name.split(".")
                 the_out_name.insert(1,out_name)
                 the_out_name = ".".join(the_out_name)
-            return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+            clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
     if batch_switch == True:
         if len(filenames) > 1:
             raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
@@ -66,21 +67,25 @@ def cli(args):
             if len(outlist) != len(filenames):
                 raise argparse.ArgumentError(None, "using out name list now: outlist must be same length with inlist.")
             else:
+                #case1: -b, outlist and inlist good, begin loop 
                 for i, cell_name in enumerate(filenames):
                     the_out_name = outlist[i]
-                    return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+                    sys.stderr.write("batch clean leg: working on %s\n"%cell_name)
+                    clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
         for cell_name in filenames:
+            #case2: -b, not outlist but out directory/replace, begin loop
             if replace == True:
                 the_out_name = cell_name
             else:
                 #using --outname as out directory
                 the_out_name = out_name + cell_name.split("/")[-1]
-            return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
-    #neither multi filenames nor batch mode
+            clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+    #case3: neither multi filenames nor batch mode
+    cell_name = filenames[0]
     if replace == True:
         #--replace in single file case
         the_out_name = cell_name    
-    return clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+    clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
 def clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count):
     t0 = time.time()
     #read data file
