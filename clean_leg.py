@@ -11,6 +11,7 @@ from collections import namedtuple
 
 from hires_io import pairs_parser
 from hires_io import write_pairs
+from batch import batch
 '''
 default 4DN .pairs format
 READID, chr1, pos1, chr2, pos2, STRAND1, STRAND2 = 0,1,2,3,4,5,6
@@ -42,8 +43,8 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
 def cli(args):
     filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch = \
         args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch
+    #case1: multi mode. multiple in files begin a loop 
     if len(filenames) > 1:
-        #case4: not batch mode, but multi infile, begin loop
         for cell_name in filenames:
             if replace == True:
                 #--replace will work in multi file input
@@ -55,6 +56,7 @@ def cli(args):
                 the_out_name = ".".join(the_out_name)
             clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
         return 0
+    '''
     if batch_switch == True:
         if len(filenames) > 1:
             raise argparse.ArgumentError(None, "in batch mode only one name list file is permitted.")
@@ -83,14 +85,20 @@ def cli(args):
                 the_out_name = out_name + cell_name.split("/")[-1]
             clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
         return 0
-    #case3: neither multi filenames nor batch mode
+    '''
+    #case2: in batch mode. call batch function to do loop
+    if batch_switch == True:
+        working_func = partial(clean_leg_main,num_thread=num_thread, max_distance=max_distance, max_count=max_count)
+        batch(working_func, filenames, out_name, replace)
+    #case3: in single mode. run once.
     cell_name = filenames[0]
     if replace == True:
-        #--replace in single file case
-        the_out_name = cell_name    
-    clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
+        the_out_name = cell_name
+    else:
+        the_out_name = out_name    
+    clean_leg_main(cell_name, the_out_name, num_thread, max_distance, max_count)
     return 0
-def clean_leg_main(cell_name, num_thread, out_name, max_distance, max_count):
+def clean_leg_main(cell_name, out_name, num_thread, max_distance, max_count):
     t0 = time.time()
     #read data file
     cell = pairs_parser(cell_name)
