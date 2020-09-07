@@ -1,5 +1,5 @@
 import argparse
-from clean_leg import clean_leg_main
+import clean_leg
 from clean_splicing import clean_splicing_main
 from align import align_main
 from clean_isolated import clean_isolated_main
@@ -10,11 +10,11 @@ def cli():
     clean_legs = subcommands.add_parser(
                             "clean_leg",
                             help="clean promiscuous legs that contacts with multiple legs")
-    clean_legs.set_defaults(handle=clean_leg_main)
+    clean_legs.set_defaults(handle=clean_leg.cli)
     clean_legs.add_argument(
                             dest="filenames",
                             metavar="INPUT_FILE",
-                            nargs=1)
+                            nargs="*")
     clean_legs.add_argument(
                             "-t", "--thread",
                             type=int,
@@ -39,7 +39,14 @@ def cli():
                             action="store",
                             default=10,
                             help="number threshold of adjacent legs"
-    )                   
+    )     
+    clean_legs.add_argument(
+                            "-b","--batch",
+                            dest="batch_switch",
+                            action="store_true",
+                            default=False,
+                            help="batch mode, -o for output directory, FILENAME for cell list file"
+    )              
     clean_legs_out = clean_legs.add_mutually_exclusive_group(required=True)
     clean_legs_out.add_argument("-s", "--replace", 
                             dest="replace_switch", 
@@ -48,8 +55,7 @@ def cli():
                             help="do clean in-place and replace input file")
     clean_legs_out.add_argument("-o", "--output", 
                             dest="out_name", action="store",
-                            help="set output file name")
-
+                            help="set output file name, or output file appendix for multiple file")
     #clean_splicing sub command
     clean_splicing = subcommands.add_parser(
                             "clean_splicing", 
