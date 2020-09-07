@@ -16,7 +16,7 @@ def batch(handle, filenames, out_name, replace):
             #outlist and inlist good, begin loop 
             for i, cell_name in enumerate(filenames):
                 the_out_name = outlist[i]
-                sys.stderr.write("batch clean splicing: working on %s\n"%cell_name)
+                sys.stderr.write("batch: working on %s\n"%cell_name)
                 handle(cell_name, the_out_name)
             return 0
     #case2:not outlist but out directory/replace, begin loop
