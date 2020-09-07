@@ -34,7 +34,11 @@ def write_pairs(data:"dataframe",in_name:str, out_name:str):
     '''
     with gzip.open(in_name, "rt") as f:
         #get file head
-        head = [next(f) for i in range(0,27)]
+        head = []
+        for line in f.readlines():
+            if line[0] != "#":
+                break
+            head.append(line)
         head = "".join(head)
     with gzip.open(out_name,"wt") as f:
         f.write(head)
