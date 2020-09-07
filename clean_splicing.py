@@ -4,21 +4,20 @@ import random
 import time
 import sys
 import gzip
+import argparse
+from functools import partial
+
 import pandas as pd
+
+
+from hires_io import pairs_parser
+from hires_io import write_pairs
+from batch import batch
 
 #chromsome contacts and reference only
 regular_chromsome_names = ["chr" + str(i) for i in range(1,23)]
 regular_chromsome_names.extend(["chrX","chrY"])
-def pairs_parser(cell_name:str)->"dataframe":
-    '''
-    read from 4DN's .pairs format
-    '''
-    t0 = time.time()
-    column_names = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
-    pairs = pd.read_table(cell_name, header=None,skiprows=27)
-    pairs.columns = column_names
-    sys.stderr.write("pairs_parser parsing time: %.2fs\n"%(time.time()-t0))
-    return pairs
+
 def bin_parser(file_name, regular="off"):
     '''
     read bin.bed file
@@ -65,30 +64,48 @@ def block_search(bin_index:"dict of list", binsize:int, cell:"dataframe")->"data
     cleaned_contacts = cell[~mask]
     sys.stderr.write("block_search searching time: %.2fs\n" % (time.time()-t0))
     return hit_contacts, cleaned_contacts
-def clean_splicing_main(args):
+def cli(args):
+    BINSIZE, index_name, filenames, out_name, replace, batch_switch = \
+        args.binsize, args.index_file_name, args.filenames, args.out_name, args.replace_switch, args.batch_switch
+    #case1: multi mode. multiple in files begin a loop 
+    if len(filenames) > 1:
+        for cell_name in filenames:
+            if replace == True:
+                #--replace will work in multi file input
+                the_out_name = cell_name
+            else:
+                #--out_name will be used as name appendix: xx.appendix.pairs.gz 
+                the_out_name = cell_name.split(".")
+                the_out_name.insert(1,out_name)
+                the_out_name = ".".join(the_out_name)
+            clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
+        return 0
+    #case2: in batch mode. call batch function to do loop
+    if batch_switch == True:
+        working_function = partial(clean_splicing_main, index_name=index_name, BINSIZE=BINSIZE)
+        return batch(working_function, filenames, out_name, replace)
+    #case3: in single mode. neither multi filenames nor batch mode
+    cell_name = filenames[0]
+    if replace == True:
+        the_out_name = cell_name
+    else:
+        the_out_name = out_name
+    #print(cell_name)    
+    clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
+    return 0
+def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
     '''
     clean contacts from splicing
     '''
-    BINSIZE, index_name, cell_name, out_name, replace = \
-        args.binsize, args.index_file_name, args.filenames[0], args.out_name, args.replace_switch
-    with gzip.open(cell_name, "rt") as f:
-        #get file head
-        head = [next(f) for i in range(0,27)]
-        head = "".join(head)
     #get real data
+    print(cell_name)
     cell = pairs_parser(cell_name)
-
     # load directly from pickled bin_index
     with open(index_name,"rb") as f:
         bin_index = pickle.load(f)
     # do searching
     print("block_search: working...")
     hit, cleaned = block_search(bin_index, BINSIZE, cell)
-
-    if replace == True:
-        out_name = cell_name
-    with gzip.open(out_name,"wt") as f:
-        f.write(head)
-    cleaned.to_csv(out_name, sep="\t", \
-        header=False, index=False, mode="a")
     sys.stderr.write("block_search total questionable contacts: %d \n" %len(hit) )
+    write_pairs(cleaned, cell_name, out_name)
+    return cleaned
