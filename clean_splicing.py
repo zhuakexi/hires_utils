@@ -99,8 +99,6 @@ def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
     '''
     clean contacts from splicing
     '''
-    #get real data
-    print("cleaning", cell_name, out_name)
     cell = pairs_parser(cell_name)
     # load directly from pickled bin_index
     with open(index_name,"rb") as f:
