@@ -64,6 +64,8 @@ def block_search(bin_index:"dict of list", binsize:int, cell:"dataframe")->"data
     cleaned_contacts = cell[~mask]
     sys.stderr.write("block_search searching time: %.2fs\n" % (time.time()-t0))
     return hit_contacts, cleaned_contacts
+def jacked(in_out, index_name, BINSIZE):
+    clean_splicing_main(in_out[0],in_out[1], index_name, BINSIZE)
 def cli(args):
     BINSIZE, index_name, filenames, out_name, replace, parallel_switch = \
         args.binsize, args.index_file_name, args.filenames, args.out_name, args.replace_switch, args.parallel_switch
@@ -80,9 +82,9 @@ def cli(args):
                 the_out_name = ".".join(the_out_name)
             clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
         return 0
-    #case2: in batch mode. call batch function to do loop
+    #case2: in parallel mode. call batch function to do loop
     if parallel_switch == True:
-        working_function = partial(clean_splicing_main, index_name=index_name, BINSIZE=BINSIZE)
+        working_function = partial(jacked, index_name=index_name, BINSIZE=BINSIZE)
         return parallel(working_function, filenames, out_name, replace)
     #case3: in single mode. neither multi filenames nor batch mode
     cell_name = filenames[0]
@@ -98,7 +100,7 @@ def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
     clean contacts from splicing
     '''
     #get real data
-    print(cell_name)
+    print("cleaning", cell_name, out_name)
     cell = pairs_parser(cell_name)
     # load directly from pickled bin_index
     with open(index_name,"rb") as f:
