@@ -11,7 +11,6 @@ def pairs_parser(cell_name:str)->"dataframe":
     '''
     read from 4DN's .pairs format
     '''
-    t0 = time.time()
     with gzip.open(cell_name,"rt") as f:
         last_comment = None
         for line in f.readlines():
@@ -24,7 +23,7 @@ def pairs_parser(cell_name:str)->"dataframe":
         pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
     else:
         pairs.columns = column_names
-    sys.stderr.write("pairs_parser: parsing in %.2fs\n"%(time.time()-t0))
+    sys.stderr.write("pairs_parser: %s parsed \n" % cell_name)
     return pairs
 def write_pairs(data:"dataframe",in_name:str, out_name:str):
     '''
@@ -32,6 +31,7 @@ def write_pairs(data:"dataframe",in_name:str, out_name:str):
     reserve heads, no dataframe index and headers
     in_file == out_file will replace original file
     '''
+    sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(in_name, "rt") as f:
         #get file head
         head = []

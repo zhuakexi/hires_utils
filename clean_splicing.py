@@ -2,7 +2,6 @@ import sys
 import pickle
 import random
 import time
-import sys
 import gzip
 import argparse
 from functools import partial
@@ -25,7 +24,7 @@ def bin_parser(file_name, regular="off"):
     '''
     time_begin = time.time()
     bins = pd.read_table(file_name, header=None)
-    print("bin_parser parsing time: " + str(time.time() - time_begin) + "\n")
+    sys.stderr.write("bin_parser parsing time: " + str(time.time() - time_begin) + "\n")
     grouped = bins.groupby(0) #group by chromsome names
     if regular == "on":
         return {key:value.values for key,value in grouped if key in regular_chromsome_names}
@@ -91,8 +90,7 @@ def cli(args):
     if replace == True:
         the_out_name = cell_name
     else:
-        the_out_name = out_name
-    #print(cell_name)    
+        the_out_name = out_name   
     clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
     return 0
 def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
@@ -104,8 +102,7 @@ def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
     with open(index_name,"rb") as f:
         bin_index = pickle.load(f)
     # do searching
-    print("block_search: working...")
     hit, cleaned = block_search(bin_index, BINSIZE, cell)
-    sys.stderr.write("block_search total questionable contacts: %d \n" %len(hit) )
+    print("clean_splicing: %d contacts removed in %s\n" %(cell_name, len(hit)) )
     write_pairs(cleaned, cell_name, out_name)
     return cleaned

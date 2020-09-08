@@ -87,7 +87,7 @@ def clean_leg_main(cell_name, out_name, num_thread, max_distance, max_count):
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input)
     result = pd.concat(res,axis=0)
-    sys.stderr.write("clean_leg: remove %d contacts\n"%(len(cell)-len(result)))
+    print("clean_leg: remove %d contacts in %s\n"%(len(cell)-len(result), cell_name))
     sys.stderr.write("clean_leg: cleaning finished in %.2fs\n"%(time.time()-t0))
     write_pairs(result, cell_name, out_name)
     return result
