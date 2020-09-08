@@ -69,7 +69,9 @@ def cli():
                             nargs="*")     
     clean_splicing_arg.add_argument(
                             "-r", "--reference", 
-                            dest="index_file_name", 
+                            dest="index_file_name",
+                            type = str,
+                            action="store", 
                             help="exon index file, use 'build' sub-command to build from scratch.", 
                             default="bin_10k_FULL_index")
     clean_splicing_arg.add_argument(
