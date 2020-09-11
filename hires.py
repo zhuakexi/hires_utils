@@ -7,7 +7,7 @@ from align import align_main
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
-    #clean_legs sub command
+#--------- clean_leg sub command ---
     clean_leg_arg = subcommands.add_parser(
                             "clean_leg",
                             help="clean promiscuous legs that contacts with multiple legs")
@@ -40,14 +40,7 @@ def cli():
                             action="store",
                             default=10,
                             help="number threshold of adjacent legs"
-    )     
-    clean_leg_arg.add_argument(
-                            "-b","--batch",
-                            dest="batch_switch",
-                            action="store_true",
-                            default=False,
-                            help="batch mode, -o for output directory, FILENAME for cell list file"
-    )              
+    )                   
     clean_leg_arg_out = clean_leg_arg.add_mutually_exclusive_group(required=True)
     clean_leg_arg_out.add_argument("-s", "--replace", 
                             dest="replace_switch", 
@@ -57,7 +50,23 @@ def cli():
     clean_leg_arg_out.add_argument("-o", "--output", 
                             dest="out_name", action="store",
                             help="set output file name, or output file appendix for multiple file")
-    #clean_splicing sub command
+    ##parsing different strategy
+    clean_leg_arg_strategy = clean_leg_arg.add_mutually_exclusive_group()
+    clean_leg_arg_strategy.add_argument(
+                            "-p", "--parallel",
+                            dest = "parallel_switch",
+                            help="do in parallel mode, maximum throghput, give filelist or directory",
+                            action="store_true",
+                            default=False
+    )                                           
+    clean_leg_arg_strategy.add_argument(
+        "-b", "--batch",
+        dest = "batch_switch",
+        help="do in batch mode, long and stable at night, give filelist or directory",
+        action="store_true",
+        default=False
+    ) 
+ # ---------#clean_splicing sub command ---
     clean_splicing_arg = subcommands.add_parser(
                             "clean_splicing", 
                             help="clean exon splicing from mRNA in contact file")
@@ -79,13 +88,22 @@ def cli():
                             dest="binsize",
                             type=int,
                             default=10000)
-    clean_splicing_arg.add_argument(
-                            "-p","--parallel",
-                            dest="parallel_switch",
+    ##parsing different strategy
+    clean_splicing_arg_strategy = clean_splicing_arg.add_mutually_exclusive_group()
+    clean_splicing_arg_strategy.add_argument(
+                            "-p", "--parallel",
+                            dest = "parallel_switch",
+                            help="do in parallel mode, maximum throghput, give filelist or directory",
                             action="store_true",
-                            default=False,
-                            help="parallel mode, give more input files or one list file, using all cpu cores allocated."
-    )                                  
+                            default=False
+    )                                           
+    clean_splicing_arg_strategy.add_argument(
+        "-b", "--batch",
+        dest = "batch_switch",
+        help="do in batch mode, long and stable at night, give filelist or directory",
+        action="store_true",
+        default=False
+    )  
     clean_splicing_arg_out = clean_splicing_arg.add_mutually_exclusive_group(required=True)
     clean_splicing_arg_out.add_argument(
                             "-s", "--replace", 
@@ -98,7 +116,8 @@ def cli():
                             dest="out_name", 
                             help="output file name", 
                             action="store")
-    #align subcommand
+    
+#--------- align subcommand ------
     align = subcommands.add_parser(
                             "align",
                             help="caculate rmsd between .3dg replicates"
@@ -116,57 +135,64 @@ def cli():
                             type=str,
                             default=""
     )
-    #clean_isolate subcommand
+#--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
-                            "clean_isolated",
-                            help="remove isolated contacts according to L-0.5 distance"
+        "clean_isolated",
+        help="remove isolated contacts according to L-0.5 distance"
     )
     clean_isolated_arg.set_defaults(handle=clean_isolated.cli)
     clean_isolated_arg.add_argument(
-                            dest="filenames",
-                            metavar="INPUT_FILE",
-                            help="input filename",
-                            nargs="*"
+        dest="filenames",
+        metavar="INPUT_FILE",
+        help="input filename",
+        nargs="*"
     )
     clean_isolated_arg.add_argument(
-                            "-b","--batch",
-                            dest="batch_switch",
-                            action="store_true",
-                            help="batch mode, give more files or one list file",
-                            default=False
-    )      
-
-    clean_isolated_arg.add_argument(
-                            "-t","--thread",
-                            dest="thread",
-                            type=int,
-                            default=23
+        "-t","--thread",
+        dest="thread",
+        type=int,
+        default=23
     )     
     clean_isolated_arg.add_argument(
-                            "-m","--dense",
-                            dest="dense",
-                            type=int,
-                            help="number of contacts in proximity",
-                            default=5)
+        "-m","--dense",
+        dest="dense",
+        type=int,
+        help="number of contacts in proximity",
+        default=5)
     clean_isolated_arg.add_argument(
-                           "-d","--distance",
-                            dest="distance",
-                            type=int,
-                            help="check contacts in what L-0.5 range",
-                            default=10000000) 
+        "-d","--distance",
+        dest="distance",
+        type=int,
+        help="check contacts in what L-0.5 range",
+        default=10000000) 
     clean_isolated_arg_out = clean_isolated_arg.add_mutually_exclusive_group(required=True)
     clean_isolated_arg_out.add_argument(
-                            "-o","--output",
-                            dest="output_file",
-                            type=str
+        "-o","--output",
+        dest="output_file",
+        type=str
     )
     clean_isolated_arg_out.add_argument(
-                            "-r","--replace",
-                            dest="replace_switch",
-                            action="store_true",
-                            default=False
-    )   
-
+        "-r","--replace",
+        dest="replace_switch",
+        action="store_true",
+        default=False
+    )
+    ##parsing different strategy
+    clean_isolated_arg_strategy = clean_isolated_arg.add_mutually_exclusive_group()
+    clean_isolated_arg_strategy.add_argument(
+        "-p", "--parallel",
+        dest = "parallel_switch",
+        help="do in parallel mode, maximum throghput, give filelist or directory",
+        action="store_true",
+        default=False
+    )                                           
+    clean_isolated_arg_strategy.add_argument(
+        "-b", "--batch",
+        dest = "batch_switch",
+        help="do in batch mode, long and stable at night, give filelist or directory",
+        action="store_true",
+        default=False   
+    )
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
