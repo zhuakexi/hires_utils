@@ -9,9 +9,9 @@ from functools import partial
 import pandas as pd
 
 
-from hires_io import pairs_parser
-from hires_io import write_pairs
-from parallel import parallel
+import hires_io
+import booter
+from classes import Cell
 
 #chromsome contacts and reference only
 regular_chromsome_names = ["chr" + str(i) for i in range(1,23)]
@@ -63,46 +63,31 @@ def block_search(bin_index:"dict of list", binsize:int, cell:"dataframe")->"data
     cleaned_contacts = cell[~mask]
     sys.stderr.write("block_search searching time: %.2fs\n" % (time.time()-t0))
     return hit_contacts, cleaned_contacts
-def jacked(in_out, index_name, BINSIZE):
-    clean_splicing_main(in_out[0],in_out[1], index_name, BINSIZE)
-def cli(args):
-    BINSIZE, index_name, filenames, out_name, replace, parallel_switch = \
-        args.binsize, args.index_file_name, args.filenames, args.out_name, args.replace_switch, args.parallel_switch
-    #case1: multi mode. multiple in files begin a loop 
-    if len(filenames) > 1:
-        for cell_name in filenames:
-            if replace == True:
-                #--replace will work in multi file input
-                the_out_name = cell_name
-            else:
-                #--out_name will be used as name appendix: xx.appendix.pairs.gz 
-                the_out_name = cell_name.split(".")
-                the_out_name.insert(1,out_name)
-                the_out_name = ".".join(the_out_name)
-            clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
-        return 0
-    #case2: in parallel mode. call batch function to do loop
+
+def cli(args)->int:
+    BINSIZE, index_name, filenames, out_name, replace, parallel_switch, batch_switch = \
+        args.binsize, args.index_file_name, args.filenames, args.out_name, args.replace_switch, args.parallel_switch, args.batch_switch
+    working_function = partial(clean_splicing, index_name=index_name, BINSIZE=BINSIZE)
     if parallel_switch == True:
-        working_function = partial(jacked, index_name=index_name, BINSIZE=BINSIZE)
-        return parallel(working_function, filenames, out_name, replace)
-    #case3: in single mode. neither multi filenames nor batch mode
-    cell_name = filenames[0]
-    if replace == True:
-        the_out_name = cell_name
-    else:
-        the_out_name = out_name   
-    clean_splicing_main(cell_name, the_out_name, index_name, BINSIZE)
-    return 0
-def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
+        return booter.parallel(working_function, filenames, out_name, replace)
+    if batch_switch == True:
+        return booter.batch(clean_splicing, filenames, out_name, replace)
+    if not parallel_switch and not batch_switch:
+        if len(filenames) > 1:
+            return booter.multi(working_function, filenames, out_name, replace)
+        else:
+            return booter.single(clean_splicing, filenames, out_name, replace)
+#def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
+def clean_splicing(cell:Cell, index_name:str, BINSIZE:int)->Cell:
     '''
     clean contacts from splicing
     '''
-    cell = pairs_parser(cell_name)
     # load directly from pickled bin_index
     with open(index_name,"rb") as f:
         bin_index = pickle.load(f)
     # do searching
-    hit, cleaned = block_search(bin_index, BINSIZE, cell)
-    print("clean_splicing: %d contacts removed in %s\n" %(len(hit), cell_name) )
-    write_pairs(cleaned, cell_name, out_name)
-    return cleaned
+    hit, cleaned = block_search(bin_index, BINSIZE, cell.data)
+    print("clean_splicing: %d contacts removed in %s\n" %(len(hit), cell.name) )
+    cell.data = cleaned
+    cell.appendix = ".pairs.gz" #keep old one
+    return cell
