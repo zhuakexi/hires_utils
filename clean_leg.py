@@ -9,9 +9,9 @@ from concurrent import futures
 from functools import partial
 from collections import namedtuple
 
-from hires_io import pairs_parser
-from hires_io import write_pairs
-from batch import batch
+from classes import Cell
+from hires_io import parse_pairs, write_pairs
+import booter
 '''
 default 4DN .pairs format
 READID, chr1, pos1, chr2, pos2, STRAND1, STRAND2 = 0,1,2,3,4,5,6
@@ -41,55 +41,40 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
     sys.stderr.write("clean_leg: 1/%d chunk done\n"%thread)
     return contacts[~mask]
 def cli(args):
-    filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch = \
-        args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch
-    #case1: multi mode. multiple in files begin a loop 
-    if len(filenames) > 1:
-        for cell_name in filenames:
-            if replace == True:
-                #--replace will work in multi file input
-                the_out_name = cell_name
-            else:
-                #--out_name will be used as name appendix: xx.appendix.pairs.gz 
-                the_out_name = cell_name.split(".")
-                the_out_name.insert(1,out_name)
-                the_out_name = ".".join(the_out_name)
-            clean_leg_main(cell_name, num_thread, the_out_name, max_distance, max_count)
-        return 0
-    #case2: in batch mode. call batch function to do loop
+    filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch, parallel_switch = \
+        args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch, args.parallel_switch
+    working_function = partial(clean_leg, num_thread=num_thread, max_count=max_count, max_distance=max_distance)
+    '''
+    if parallel_switch == True:
+        return booter.parallel(working_function, filenames, out_name, replace)
     if batch_switch == True:
-        working_func = partial(clean_leg_main,num_thread=num_thread, max_distance=max_distance, max_count=max_count)
-        batch(working_func, filenames, out_name, replace)
-    #case3: in single mode. run once.
-    cell_name = filenames[0]
-    if replace == True:
-        the_out_name = cell_name
-    else:
-        the_out_name = out_name    
-    clean_leg_main(cell_name, the_out_name, num_thread, max_distance, max_count)
-    return 0
-def clean_leg_main(cell_name, out_name, num_thread, max_distance, max_count):
-    t0 = time.time()
-    #read data file
-    cell = pairs_parser(cell_name)
+        return booter.batch(clean_leg, filenames, out_name, replace, num_thread)
+    '''
+    if not parallel_switch and not batch_switch:
+        if len(filenames) > 1:
+            return booter.multi(working_function, filenames, out_name, replace, num_thread)
+        else:
+            return booter.single(working_function, filenames, out_name, replace)
+def clean_leg(cell:Cell, num_thread:int, max_distance:int, max_count:int):
     #merge left and right legs, hash by chromosome_names
     t0 = time.time()
-    left, right = cell[["chr1","pos1"]], cell[["chr2","pos2"]]
-    left.columns, right.columns = ("chr","pos"),("chr","pos")
-    all_legs = pd.concat((left,right),axis=0,ignore_index=True)
+    left, right = cell.data[["chr1","pos1"]], cell.data[["chr2","pos2"]]
+    left.columns, right.columns = ("chr","pos"), ("chr","pos")
+    all_legs = pd.concat((left,right), axis=0, ignore_index=True)
     sorted_legs = {key:value.sort_values(by="pos",axis=0,ignore_index=True) for key, value in all_legs.groupby("chr")}
     sys.stderr.write("clean_leg: group sort in %.2fs\n"%(time.time()-t0))
     #multithread filtering
     t0=time.time()
-    input = np.array_split(cell, num_thread, axis=0)
+    input = np.array_split(cell.data, num_thread, axis=0)
     working_func = partial(clean_promiscuous,sorted_legs=sorted_legs, 
                            thread=num_thread, max_distance=max_distance, max_count=max_count)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input)
-    result = pd.concat(res,axis=0)
-    print("clean_leg: remove %d contacts in %s\n"%(len(cell)-len(result), cell_name))
-    sys.stderr.write("clean_leg: cleaning finished in %.2fs\n"%(time.time()-t0))
-    write_pairs(result, cell_name, out_name)
-    return result
+    result = pd.concat(res, axis=0)
+    print("clean_leg: remove %d contacts in %s\n"%(len(cell.data)-len(result), cell.name))
+    sys.stderr.write("clean_leg: finished in %.2fs\n"%(time.time()-t0))
+    cell.data=result
+    cell.appendix = ".pairs.gz" #keep old one
+    return cell
 
     
