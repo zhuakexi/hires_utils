@@ -71,7 +71,7 @@ def cli(args)->int:
     if parallel_switch == True:
         return booter.parallel(working_function, filenames, out_name, replace)
     if batch_switch == True:
-        return booter.batch(clean_splicing, filenames, out_name, replace)
+        return booter.batch(working_function, filenames, out_name, replace)
     if not parallel_switch and not batch_switch:
         if len(filenames) > 1:
             return booter.multi(working_function, filenames, out_name, replace)
