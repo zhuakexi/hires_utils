@@ -1,45 +1,87 @@
 import time
 import sys
 import gzip
+import os
 import pandas as pd
+
+from classes import Cell
 
 '''
 work with local pairs file generated from hickit
 has 27 headline start with "#"
 '''
-def pairs_parser(cell_name:str)->"dataframe":
+def divide_name(filename):
+    #home-made os.path.splitext, for it can't handle "name.a.b.c" properly
+    basename = os.path.basename(filename)
+    parts = basename.split(".") #split return >= 1 length list
+    if len(parts) == 1:
+        return parts[0], ""
+    else:
+        return parts[0], "."+".".join(parts[1:]) 
+def parse_pairs(filename:str)->"dataframe":
     '''
     read from 4DN's .pairs format
     '''
-    with gzip.open(cell_name,"rt") as f:
+    #column names are in the last comment line.
+    #head are stored in cell, handler may change it.
+    with gzip.open(filename,"rt") as f:
+        head = []
         last_comment = None
         for line in f.readlines():
             if line[0] != "#":
                 break
+            head.append(line)
             last_comment= line.strip("#\n")
     column_names = last_comment.split()[1:] 
-    pairs = pd.read_table(cell_name, header=None,comment="#")
+    pairs = pd.read_table(filename, header=None,comment="#")
     if column_names == None:
         pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
     else:
         pairs.columns = column_names
-    sys.stderr.write("pairs_parser: %s parsed \n" % cell_name)
-    return pairs
-def write_pairs(data:"dataframe",in_name:str, out_name:str):
+    sys.stderr.write("pairs_parser: %s parsed \n" % filename)
+    return Cell(*divide_name(filename), pairs, "".join(head))
+def write_pairs(cell:Cell, out_name:str):
     '''
     write dataframe to tab delimited zipped file
     reserve heads, no dataframe index and headers
     in_file == out_file will replace original file
     '''
     sys.stderr.write("write to %s\n" % out_name)
-    with gzip.open(in_name, "rt") as f:
-        #get file head
-        head = []
-        for line in f.readlines():
-            if line[0] != "#":
-                break
-            head.append(line)
-        head = "".join(head)
     with gzip.open(out_name,"wt") as f:
-        f.write(head)
-        data.to_csv(f, sep="\t", header=False, index=False, mode="a")
+        f.write(cell.file_head)
+        cell.data.to_csv(f, sep="\t", header=False, index=False, mode="a")
+def queue_read(filenames:list)->"list of dataframe":
+    '''
+    read one by one. return generator
+    '''
+    if len(filenames) == 1:
+        filename = filenames[0]
+        if os.path.isdir(filename):
+            #use it as a directory
+            return (parse_pairs(name) for name in os.listdir(filename))
+        else:
+            #use it as a namelist file
+            with open(filename) as f:
+                real_filenames = [line.strip() for line in f]
+            return (parse_pairs(name) for name in real_filenames)
+    else:
+        #filenames is just list names
+        return (parse_pairs(name) for name in filenames)
+def queue_write(res:"list of cell", out_name:str, replace:bool, filenames:list):
+    '''
+    write one by one. out_name to induce real outnames. filenames needed for replace mode.
+    '''
+    if replace == True:
+        for cell, out_name in zip(res, filenames):
+            write_pairs(cell, out_name)
+    else:
+        if os.path.isdir(out_name):
+            #use out_name as out directory, use standard appendix from cell.appendix
+            for cell in res:
+                write_pairs(cell, os.path.join(out_name, cell.name + cell.appendix))
+        else:
+            #use outname as namelist
+            with open(out_name) as f:
+                real_outnames = [line.strip() for line in f]
+            for cell, real_outname in zip(res, real_outnames):
+                write_pairs(cell, real_outname)          
