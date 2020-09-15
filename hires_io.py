@@ -24,6 +24,7 @@ def parse_pairs(filename:str)->"dataframe":
     '''
     #column names are in the last comment line.
     #head are stored in cell, handler may change it.
+    #now return Data
     with gzip.open(filename,"rt") as f:
         head = []
         last_comment = None
@@ -41,6 +42,7 @@ def parse_pairs(filename:str)->"dataframe":
     sys.stderr.write("pairs_parser: %s parsed \n" % filename)
     return Cell(*divide_name(filename), pairs, "".join(head))
 def write_pairs(cell:Cell, out_name:str):
+    #now use data
     '''
     write dataframe to tab delimited zipped file
     reserve heads, no dataframe index and headers
@@ -54,6 +56,7 @@ def queue_read(filenames:list)->"list of dataframe":
     '''
     read one by one. return generator
     '''
+    #use different parser
     if len(filenames) == 1:
         filename = filenames[0]
         if os.path.isdir(filename):
@@ -71,6 +74,7 @@ def queue_write(res:"list of cell", out_name:str, replace:bool, filenames:list):
     '''
     write one by one. out_name to induce real outnames. filenames needed for replace mode.
     '''
+    #use different writer
     if replace == True:
         for cell, out_name in zip(res, filenames):
             write_pairs(cell, out_name)
