@@ -19,30 +19,7 @@ def do_pick(pairs:list,dv:list):
     good_pairs = [i for i,j in enumerate(pairs) if len(j.intersection(problematic)) == 0]
     return problematic, good_pairs
 def align_main(args):
-    filenames, output_prefix = args.filenames, args.output_prefix
-    '''
-    # default parameters
-    output_prefix = None
-
-    # read arguments
-    try:
-        opts, args = getopt.getopt(argv[1:], "o:")
-    except getopt.GetoptError as err:
-        sys.stderr.write("[E::" + __name__ + "] unknown command\n")
-        return 1
-    if len(args) == 0:
-        sys.stderr.write("Usage: dip-c align [options] <in1.3dg> <in2.3dg> ...\n")
-        sys.stderr.write("Options:\n")
-        sys.stderr.write("  -o STR        output prefix [no output]\n")
-        sys.stderr.write("Output:\n")
-        sys.stderr.write("  tab-delimited: homolog, locus, RMSD\n")
-        sys.stderr.write("  additionally with \"-o\": 3DG files aligned to each other\n")
-
-        return 1
-    for o, a in opts:
-        if o == "-o":
-            output_prefix = a            
-    '''      
+    filenames, output_prefix = args.filenames, args.output_prefix    
     # ------------------------load 3dg files--------------------------
     input_data = []
     num_structures = len(filenames)
