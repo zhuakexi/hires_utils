@@ -193,6 +193,49 @@ def cli():
         action="store_true",
         default=False   
     )
+# --------- script subcommand ------
+    script = subcommands.add_parser(
+        "script",
+        help = "handle from fastq to mmCIF, with multiple cell"
+    )
+    script.add_argument(
+        "filenames",
+        dest="filenames",
+        metavar=("raw/", "name"),
+        help="doubled fastq files, or paired single fastq files( check the --paired_in option), or a directory.",
+        nargs="*"
+    )
+    script.add_argument(
+        "-o","--output",
+        dest="out_name",
+        help="output directory, with all mid-files in( check -sub or -cell option for more tidier organization).",
+        metavar="DIR/",
+        action="store",
+        required=True
+    )
+    ## directory architectual options
+    dir_arch = script.add_mutually_exclusive_group()
+    dir_arch.add_argument(
+        "-sub","--by_type",
+        dest="sub_dir_switch",
+        help="using subdirectories like seg/ pairs/ 3dg/ to store output, create if not prepared.",
+        action="store_true",
+        default=False
+    )
+    dir_arch.add_argument(
+        "-cell","--by_cell",
+        dest="by_cell_switch",
+        help="using cell name as subdirecotries.",
+        action="store_true",
+        default=False
+    )
+    script.add_argument(
+        "-p", "--paired_in",
+        dest="paired_switch",
+        help="use single fastq file with both reads and mate reads in.",
+        action="store_true",
+        default=False
+    )
     args = parser.parse_args()
     #print(args.replace_switch)
     #print(args.out_name)
