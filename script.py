@@ -23,8 +23,9 @@ def is_file_type(filename:str, *key_words:str, sep:str="."):
     return [part for part in parts if part in key_words] != []
 def get_file_under(directory:str, file_sigs:list)->list:
     #get all file of specific types under the directory
-    files = os.listdir(directory)
-    return [os.path.abspath(file) for file in files if is_file_type(file,*file_sigs)]
+    directory = os.path.abspath(directory)
+    files = os.listdir(directory) 
+    return [os.path.join(directory, file) for file in files if is_file_type(file,*file_sigs)]
 def is_sub_directory(directory, name):
     return os.path.normpath(name) in os.listdir(directory)
 def cli(args):
@@ -62,7 +63,7 @@ def cli(args):
             cell_names_file, fastq_names = filenames[0], filenames[1:]
             with open(cell_names_file) as f:
                 cell_names = [line.strip() for line in f]
-            nested_fastqs = zip(fastq_names[::2],fastq_names[1::2])
+            nested_fastqs = list(zip(fastq_names[::2],fastq_names[1::2]))
         else:
             sys.stderr.write("Input suggest:\n raw/ name1 name2 ...   OR\n cell_names 1r1.fastq 1r2.fastq 2r1.fastq 2r2.fastq ...   OR\n cell1/ cell2/ ...\n\n\n")
             raise ArgumentError(None, "wrong fastq")
@@ -70,21 +71,35 @@ def cli(args):
     #print(cell_names)
     #print(nested_fastqs)
     if len(cell_names) == 1:
-        pass
+        return no_assigner(cell_names[0], out_name, 8, *(nested_fastqs[0]))
     else:
         pass
 
 #sketch pipline functions here temperaly, 
 #will create independent subcommand for step by step usage    
-def split_dna_rna(fastqs:"filename"):
-    if len(fastqs) == 1:
-        r1 = fastqs[0]
-        print(r1)
-    elif len(fastqs) == 2:
-        r1, r2 = fastqs[0], fastqs[1]
-        print(r1,r2)
-def no_assigner():
+def split_dna_rna(cell_name, out_name, num_thread, fastq1, fastq2):
+    aps = ["dna.R1.fq.gz","dna.R2.fq.gz","rna.R1.fq.gz","rna.R2.fq.gz"]
+    subs = ["dna","dna","rna","rna"]
+    real_out_names = [os.path.join(out_name, sub,".".join([cell_name, ap])) for sub, ap in zip(subs, aps)]
+    '''
+    print(
+        "cutadapt -G 'XGGTTGAGGTAGTATTGCGCAATG;o=20' -j %d \
+        --untrimmed-output %s \
+        --untrimmed-paired-output %s \
+        -o %s -p %s %s %s \
+            " % (num_thread, *real_out_names, fastq1, fastq2))
+    '''
+    run(
+        "cutadapt -G 'XGGTTGAGGTAGTATTGCGCAATG;o=20' -j %d \
+        --untrimmed-output %s \
+        --untrimmed-paired-output %s \
+        -o %s -p %s %s %s \
+            " % (num_thread, *real_out_names, fastq1, fastq2),
+            shell=True)
+def no_assigner(cell_name, out_name, num_thread, fastq1, fastq2):
     #run the easy way, ask for resources according to stringe stage
-    pass
+    #not support by-cell-directory yet
+    #print(cell_name, out_name, num_thread, fastq1, fastq2)
+    split_dna_rna(cell_name, out_name, num_thread, fastq1, fastq2)
 def assigner():
     pass
