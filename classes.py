@@ -3,6 +3,7 @@ from time import time
 import pandas as pd
 
 Data = namedtuple("data",["type","head","content","appendix","file"])
+Task = namedtuple("task",["data_type", "out_file", "num_thread"])
 
 class Cell:
     def __init__(self, name:str, data:Data=None, log:str=""):
@@ -24,4 +25,5 @@ class Cell:
         return "\n".join(self.logs)
     def add_data(self, data):
         self.datas[data.type] = data
-    
+    def get_data(self, data_type:str):
+        return self.datas[data_type]
