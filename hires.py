@@ -236,6 +236,13 @@ def cli():
         action="store_true",
         default=False
     )
+    script_arg.add_argument(
+        "-t", "--num_thread",
+        dest="num_thread",
+        help="thread used on one cell(Notion:not the total core number allocated).",
+        action="store",
+        default=4
+    )
 
     args = parser.parse_args()
     #print(args.replace_switch)
