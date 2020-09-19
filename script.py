@@ -3,6 +3,10 @@ from argparse import ArgumentError
 import os
 import sys
 from subprocess import run
+from functools import partial
+
+import booter
+from classes import Cell, Data
 def shear_name(filename:str,sep="."):
     #shear filename, usefull when working on complex appendix
     basename = os.path.basename(filename)
@@ -29,8 +33,8 @@ def get_file_under(directory:str, file_sigs:list)->list:
 def is_sub_directory(directory, name):
     return os.path.normpath(name) in os.listdir(directory)
 def cli(args):
-    filenames, out_name, sub_dir_switch, paired_switch, by_cell_switch = \
-        args.filenames, args.out_name, args.sub_dir_switch, args.paired_switch, args.by_cell_switch
+    filenames, out_name, sub_dir_switch, paired_switch, by_cell_switch, num_thread = \
+        args.filenames, args.out_name, args.sub_dir_switch, args.paired_switch, args.by_cell_switch, args.num_thread
     #get real fastq filenames and cell names
     nested_fastqs, cell_names = None, None
     if paired_switch == True:
@@ -70,36 +74,45 @@ def cli(args):
     #assert len(cell_names) == len(nested_fastqs)
     #print(cell_names)
     #print(nested_fastqs)
-    if len(cell_names) == 1:
-        return no_assigner(cell_names[0], out_name, 8, *(nested_fastqs[0]))
+    # initiate cells for no_assigner, that is for split_dna_rna in fact
+    fastq_data = [Data("fastq","","",".fastq.gz",file_list) for file_list in nested_fastqs]
+    cells = [Cell(cell_name, data) for cell_name, data in zip(cell_names,fastq_data)]
+    # call no_assinger in simple multiplex
+    if len(cells) == 1:
+        return no_assigner(cells[0], out_name, num_thread)
     else:
+        '''
+        workfunction = partial(no_assigner,out_name=out_name, num_thread=num_thread, )
+        return booter.multi(workfunction, cells, len(cells)) #simple multiplex 
+        '''
         pass
 
 #sketch pipline functions here temperaly, 
 #will create independent subcommand for step by step usage    
-def split_dna_rna(cell_name, out_name, num_thread, fastq1, fastq2):
+def split_dna_rna(cell, out_name, num_thread):
     aps = ["dna.R1.fq.gz","dna.R2.fq.gz","rna.R1.fq.gz","rna.R2.fq.gz"]
     subs = ["dna","dna","rna","rna"]
-    real_out_names = [os.path.join(out_name, sub,".".join([cell_name, ap])) for sub, ap in zip(subs, aps)]
+    real_out_names = [os.path.join(out_name, sub,".".join([cell.name, ap])) for sub, ap in zip(subs, aps)]
     '''
     print(
         "cutadapt -G 'XGGTTGAGGTAGTATTGCGCAATG;o=20' -j %d \
         --untrimmed-output %s \
         --untrimmed-paired-output %s \
         -o %s -p %s %s %s \
-            " % (num_thread, *real_out_names, fastq1, fastq2))
+            " % (num_thread, *real_out_names, *cell.get_data["fastq"]))
     '''
     run(
         "cutadapt -G 'XGGTTGAGGTAGTATTGCGCAATG;o=20' -j %d \
         --untrimmed-output %s \
         --untrimmed-paired-output %s \
         -o %s -p %s %s %s \
-            " % (num_thread, *real_out_names, fastq1, fastq2),
+            " % (num_thread, *real_out_names, *cell.get_data["fastq"]),
             shell=True)
-def no_assigner(cell_name, out_name, num_thread, fastq1, fastq2):
+def no_assigner(cell:Cell, out_name, num_thread):
     #run the easy way, ask for resources according to stringe stage
+    #single runing, multiplexed by cli
     #not support by-cell-directory yet
     #print(cell_name, out_name, num_thread, fastq1, fastq2)
-    split_dna_rna(cell_name, out_name, num_thread, fastq1, fastq2)
+    split_dna_rna(cell, out_name, num_thread)
 def assigner():
     pass
