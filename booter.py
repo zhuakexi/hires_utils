@@ -12,6 +12,7 @@ def parallel(handle:"one cell argument", filenames:list, out_name:str, replace:b
 
 def batch(handle:"one cell argument", filenames:list, out_name:str, replace:bool)->int:
     pass
+'''
 def multi(handle:"one cell argument", filenames:"multi elements list", out_name:str, replace:bool, num_thread=1)->int:
     #call handle in several times
     cells = queue_read(filenames)
@@ -22,6 +23,12 @@ def multi(handle:"one cell argument", filenames:"multi elements list", out_name:
     else:
         res = (handle(cell) for cell in cells)
     queue_write(res, out_name, replace, filenames)
+'''
+def multi(handle:"one cell argument", input:"list_of_cell", pool_size:int=1)->"list_of_cell":
+    #call handle in several times
+    with futures.ProcessPoolExecutor(pool_size) as pool:
+        res = pool.map(handle, input)
+    return res
 def single(handle:"one cell argument", filenames:"one element list", out_name:str, replace:bool)->int:
     #call handle once
     real_in_name = filenames[0]
