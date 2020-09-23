@@ -86,7 +86,7 @@ def clean_splicing(cell:Cell, index_name:str, BINSIZE:int)->Cell:
     with open(index_name,"rb") as f:
         bin_index = pickle.load(f)
     # do searching
-    hit, cleaned = block_search(bin_index, BINSIZE, cell.get_data["pairs"].content)
+    hit, cleaned = block_search(bin_index, BINSIZE, cell.get_data("pairs").content)
     print("clean_splicing: %d contacts removed in %s\n" %(len(hit), cell.name) )
     cell.get_data("pairs").content = cleaned
     return cell
