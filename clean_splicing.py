@@ -76,7 +76,7 @@ def cli(args)->int:
         if len(filenames) > 1:
             return booter.multi(working_function, filenames, out_name, replace)
         else:
-            return booter.single(clean_splicing, filenames, out_name, replace)
+            return booter.single(working_function, filenames, out_name, replace)
 #def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
 def clean_splicing(cell:Cell, index_name:str, BINSIZE:int)->Cell:
     '''
