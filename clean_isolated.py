@@ -69,5 +69,5 @@ def clean_isolated(cell, num_thread, up_dense, up_distance):
     cleaned = pd.concat(res, axis=0)
     print("clean_isolated: %d contacts removed in %s" % (len(cell.get_data("pairs").content)-len(cleaned), cell.name))
     sys.stderr.write("clean_isolated: finished in %.2fs\n"%(time.time()-t0))
-    cell.get_data["pairs"].content = cleaned
+    cell.get_data("pairs").content = cleaned
     return cell
