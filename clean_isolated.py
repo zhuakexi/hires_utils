@@ -62,13 +62,12 @@ def cli(args):
             return booter.single(working_function, filenames, out_name, replace)
 def clean_isolated(cell, num_thread, up_dense, up_distance):
     t0 = time.time()
-    input_data = ( value for key, value in cell.data.groupby(["chr1","chr2"]) )
+    input_data = ( value for key, value in cell.get_data("pairs").content.groupby(["chr1","chr2"]) )
     working_func = partial(clean_contacts_in_pair, up_dense=up_dense, up_distance=up_distance)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     cleaned = pd.concat(res, axis=0)
-    print("clean_isolated: %d contacts removed in %s" % (len(cell.data)-len(cleaned), cell.name))
+    print("clean_isolated: %d contacts removed in %s" % (len(cell.get_data("pairs").content)-len(cleaned), cell.name))
     sys.stderr.write("clean_isolated: finished in %.2fs\n"%(time.time()-t0))
-    cell.data = cleaned
-    cell.appendix = ".pairs.gz"
+    cell.get_data["pairs"].content = cleaned
     return cell
