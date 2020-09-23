@@ -40,7 +40,7 @@ def parse_pairs(filename:str)->"dataframe":
     else:
         pairs.columns = column_names
     sys.stderr.write("pairs_parser: %s parsed \n" % filename)
-	pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
+    pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
     return Cell(*divide_name(filename), pairs_data)
 def write_pairs(cell:Cell, out_name:str):
     #now use data
