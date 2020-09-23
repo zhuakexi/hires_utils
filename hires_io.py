@@ -4,7 +4,7 @@ import gzip
 import os
 import pandas as pd
 
-from classes import Cell
+from classes import Cell, Data
 
 '''
 work with local pairs file generated from hickit
@@ -40,7 +40,8 @@ def parse_pairs(filename:str)->"dataframe":
     else:
         pairs.columns = column_names
     sys.stderr.write("pairs_parser: %s parsed \n" % filename)
-    return Cell(*divide_name(filename), pairs, "".join(head))
+	pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
+    return Cell(*divide_name(filename), pairs_data)
 def write_pairs(cell:Cell, out_name:str):
     #now use data
     '''
@@ -50,8 +51,8 @@ def write_pairs(cell:Cell, out_name:str):
     '''
     sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(out_name,"wt") as f:
-        f.write(cell.file_head)
-        cell.data.to_csv(f, sep="\t", header=False, index=False, mode="a")
+        f.write(cell.get_data("pairs").head)
+        cell.get_data("pairs").content.to_csv(f, sep="\t", header=False, index=False, mode="a")
 def queue_read(filenames:list)->"list of dataframe":
     '''
     read one by one. return generator
