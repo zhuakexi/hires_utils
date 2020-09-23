@@ -10,10 +10,10 @@ class Cell:
         #name, data exposed
         #log system
         self.name = name
-		self.datas = {}
+        self.datas = {}
         if data != None:
             self.add_data(data)
-		self.logs = []
+        self.logs = []
         if log != "":
             self.add_log(log)
     def add_log(self, msg):
