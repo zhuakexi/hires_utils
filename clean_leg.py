@@ -58,23 +58,22 @@ def cli(args):
 def clean_leg(cell:Cell, num_thread:int, max_distance:int, max_count:int):
     #merge left and right legs, hash by chromosome_names
     t0 = time.time()
-    left, right = cell.data[["chr1","pos1"]], cell.data[["chr2","pos2"]]
+    left, right = cell.get_data("pairs").content[["chr1","pos1"]], cell.get_data("pairs").content[["chr2","pos2"]]
     left.columns, right.columns = ("chr","pos"), ("chr","pos")
     all_legs = pd.concat((left,right), axis=0, ignore_index=True)
     sorted_legs = {key:value.sort_values(by="pos",axis=0,ignore_index=True) for key, value in all_legs.groupby("chr")}
     sys.stderr.write("clean_leg: group sort in %.2fs\n"%(time.time()-t0))
     #multithread filtering
     t0=time.time()
-    input = np.array_split(cell.data, num_thread, axis=0)
+    input = np.array_split(cell.get_data("pairs").content, num_thread, axis=0)
     working_func = partial(clean_promiscuous,sorted_legs=sorted_legs, 
                            thread=num_thread, max_distance=max_distance, max_count=max_count)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input)
     result = pd.concat(res, axis=0)
-    print("clean_leg: remove %d contacts in %s\n"%(len(cell.data)-len(result), cell.name))
+    print("clean_leg: remove %d contacts in %s\n"%(len(cell.get_data("pairs").content)-len(result), cell.name))
     sys.stderr.write("clean_leg: finished in %.2fs\n"%(time.time()-t0))
-    cell.data=result
-    cell.appendix = ".pairs.gz" #keep old one
+    cell.get_data("pairs").content = result
     return cell
 
     
