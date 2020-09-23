@@ -10,13 +10,11 @@ class Cell:
         #name, data exposed
         #log system
         self.name = name
-        if data == None:
-            self.datas = {}
-        else:
+		self.datas = {}
+        if data != None:
             self.add_data(data)
-        if log == "":
-            self.logs = []
-        else:
+		self.logs = []
+        if log != "":
             self.add_log(log)
     def add_log(self, msg):
         #time stamp
