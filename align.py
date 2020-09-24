@@ -123,9 +123,9 @@ def align_main(args):
         exclude_files = [filenames[i] for i in problematic]
         good_files = [name for name in filenames if name not in exclude_files ]
         for name in good_files:
-            shutil.move(name, os.path.join(output_dir,os.path.basename(name)))
+            shutil.copy(name, os.path.join(output_dir,os.path.basename(name)))
         print("Exclude: ", str(exclude_files), "from rmsd calculation.")
-        sys.stderr.write("M:: %s: moving good files %s\n" % (__name__, str(good_files)) )
+        sys.stderr.write("M:: %s: copy good files %s\n" % (__name__, str(good_files)) )
         good_deviations = [deviations[:,i] for i in good_pairs]
         good_deviations = np.array(good_deviations).T
         #print("deviations", deviations.shape)
