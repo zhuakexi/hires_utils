@@ -34,7 +34,7 @@ def do_pick(pairs:list,dv:list):
     good_pairs = [i for i,j in enumerate(pairs) if len(j.intersection(problematic)) == 0]
     return problematic, good_pairs
 def align_main(args):
-    filenames, output_info_dir, output_dir = args.filenames, args.output_info_dir, args.output_dir    
+    filenames, output_dir, good_dir, bad_dir = args.filenames, args.output_dir, args.good_dir, args.bad_dir    
     # ------------------------load 3dg files--------------------------
     input_data = []
     num_structures = len(filenames)
@@ -105,11 +105,11 @@ def align_main(args):
                 print("[M::" + __name__ + "] median deviation between file " + str(i) + " and file " + str(j) + ": " + str(np.median(deviation)) + "\n")
             
             # rotate
-            if output_info_dir is not None:
+            if output_dir is not None:
                 # rotate j to align with i
                 sys.stderr.write("[M::" + __name__ + "] aligning file " + str(j) + " to file " + str(i) + "\n")
                 cell_name = get_cell_name(filenames[0])
-                aligned_filename = os.path.join(output_info_dir, cell_name + "." + str(j) + "_to_" + str(i) + ".3dg")
+                aligned_filename = os.path.join(output_dir, cell_name + "." + str(j) + "_to_" + str(i) + ".3dg")
                 aligned_file = open(aligned_filename, "w")
                 for input_locus in input_data[j]:
                     aligned_pos = np.dot((np.array(input_data[j][input_locus]) - centroid_data[j]) * mirror_factor, rotation_matrix) + centroid_data[i]
@@ -123,7 +123,9 @@ def align_main(args):
         exclude_files = [filenames[i] for i in problematic]
         good_files = [name for name in filenames if name not in exclude_files ]
         for name in good_files:
-            shutil.copy(name, os.path.join(output_dir,os.path.basename(name)))
+            shutil.copy(name, os.path.join(good_dir, os.path.basename(name)) )
+        for name in exclude_files:
+            shutil.copy(name, os.path.join(bad_dir, os.path.basename(name)) )
         print("Exclude: ", str(exclude_files), "from rmsd calculation.")
         sys.stderr.write("M:: %s: copy good files %s\n" % (__name__, str(good_files)) )
         good_deviations = [deviations[:,i] for i in good_pairs]
