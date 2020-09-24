@@ -131,10 +131,17 @@ def cli():
                             nargs="*"
     )
     align.add_argument(
-                            "-o","--output_prefix",
-                            dest="output_prefix",
+                            "-oi","--output_info_dir",
+                            dest="output_info_dir",
                             type=str,
-                            default=""
+                            help="directory to store aligned 3dg file",
+                            required=True
+    )
+    align.add_argument(
+        "-o", "--output_dir",
+        dest="output_dir",
+        help="output directory for good(low rmsd) structure.",
+        required=True
     )
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
