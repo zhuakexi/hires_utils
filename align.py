@@ -2,6 +2,21 @@ import sys
 import getopt
 import numpy as np
 import rmsd
+import shutil
+import os
+
+
+def divide_name(filename):
+    #home-made os.path.splitext, for it can't handle "name.a.b.c" properly
+    basename = os.path.basename(filename)
+    parts = basename.split(".") #split return >= 1 length list
+    if len(parts) == 1:
+        return parts[0], ""
+    else:
+        return parts[0], "."+".".join(parts[1:]) 
+def get_cell_name(filename):
+    cell_name, _ = divide_name(filename)
+    return cell_name
 
 THRESHOLD=2
 def do_pick(pairs:list,dv:list):
@@ -19,7 +34,7 @@ def do_pick(pairs:list,dv:list):
     good_pairs = [i for i,j in enumerate(pairs) if len(j.intersection(problematic)) == 0]
     return problematic, good_pairs
 def align_main(args):
-    filenames, output_prefix = args.filenames, args.output_prefix    
+    filenames, output_info_dir, output_dir = args.filenames, args.output_info_dir, args.output_dir    
     # ------------------------load 3dg files--------------------------
     input_data = []
     num_structures = len(filenames)
@@ -90,10 +105,11 @@ def align_main(args):
                 sys.stderr.write("[M::" + __name__ + "] median deviation between file " + str(i) + " and file " + str(j) + ": " + str(np.median(deviation)) + "\n")
             
             # rotate
-            if output_prefix is not None:
+            if output_info_dir is not None:
                 # rotate j to align with i
                 sys.stderr.write("[M::" + __name__ + "] aligning file " + str(j) + " to file " + str(i) + "\n")
-                aligned_filename = output_prefix + str(j) + "_to_" + str(i) + ".3dg"
+                cell_name = get_cell_name(filenames[0])
+                aligned_filename = os.path.join(output_info_dir, cell_name + "." + str(j) + "_to_" + str(i) + ".3dg")
                 aligned_file = open(aligned_filename, "w")
                 for input_locus in input_data[j]:
                     aligned_pos = np.dot((np.array(input_data[j][input_locus]) - centroid_data[j]) * mirror_factor, rotation_matrix) + centroid_data[i]
@@ -105,6 +121,11 @@ def align_main(args):
     problematic, good_pairs = do_pick(dv_pairs, median_deviations)
     if len(problematic) > 0:
         exclude_files = [filenames[i] for i in problematic]
+        good_files = [name for name in filenames if name not in exclude_files ]
+        for name in good_files:
+            shutil.move(name, os.path.join(output_dir,os.path.basename(name)))
+        sys.stderr.write("[M::" + __name__ + "] exclude: " + str(exclude_files) +"\n")
+        sys.stderr.write("M:: %s: moving good files %s" % (__name__, str(good_files)) )
         good_deviations = [deviations[:,i] for i in good_pairs]
         good_deviations = np.array(good_deviations).T
         #print("deviations", deviations.shape)
@@ -121,8 +142,7 @@ def align_main(args):
     median_rmsd = Median( RMS(deviations,1) )
     rms_rmsd = RMS( RMS(deviations,1) )
     
-    # ------------print and log------------
-    sys.stderr.write("[M::" + __name__ + "] exclude: " + str(exclude_files) +"\n")
+    # ------------print and log------------ 
     sys.stderr.write("[M::" + __name__ + "] RMS RMSD: " + str(rms_rmsd) + "\n")
     sys.stderr.write("[M::" + __name__ + "] median RMSD: " + str(median_rmsd) + "\n")
     sys.stderr.write("[M::" + __name__ + "] writing output\n")
