@@ -131,16 +131,22 @@ def cli():
                             nargs="*"
     )
     align.add_argument(
-                            "-oi","--output_info_dir",
-                            dest="output_info_dir",
+                            "-o","--output_dir",
+                            dest="output_dir",
                             type=str,
-                            help="directory to store aligned 3dg file",
+                            help="directory to store aligned 3dg file and rmsd info file",
                             required=True
     )
     align.add_argument(
-        "-o", "--output_dir",
-        dest="output_dir",
+        "-gd", "--good_dir",
+        dest="good_dir",
         help="output directory for good(low rmsd) structure.",
+        required=True
+    )
+    align.add_argument(
+        "-bd", "--bad_dir",
+        dest="bad_dir",
+        help="output directory for bad(causing high rmsd) structure.",
         required=True
     )
 #--------- clean_isolate subcommand ------
