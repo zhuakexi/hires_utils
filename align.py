@@ -102,7 +102,7 @@ def align_main(args):
                 #print("deviations",deviations)
                 dv_pairs.append( set([i,j]) )
                 median_deviations.append(np.median(deviation))
-                sys.stderr.write("[M::" + __name__ + "] median deviation between file " + str(i) + " and file " + str(j) + ": " + str(np.median(deviation)) + "\n")
+                print("[M::" + __name__ + "] median deviation between file " + str(i) + " and file " + str(j) + ": " + str(np.median(deviation)) + "\n")
             
             # rotate
             if output_info_dir is not None:
@@ -124,8 +124,8 @@ def align_main(args):
         good_files = [name for name in filenames if name not in exclude_files ]
         for name in good_files:
             shutil.move(name, os.path.join(output_dir,os.path.basename(name)))
-        sys.stderr.write("[M::" + __name__ + "] exclude: " + str(exclude_files) +"\n")
-        sys.stderr.write("M:: %s: moving good files %s" % (__name__, str(good_files)) )
+        print("Exclude: ", str(exclude_files), "from rmsd calculation.")
+        sys.stderr.write("M:: %s: moving good files %s\n" % (__name__, str(good_files)) )
         good_deviations = [deviations[:,i] for i in good_pairs]
         good_deviations = np.array(good_deviations).T
         #print("deviations", deviations.shape)
@@ -143,8 +143,8 @@ def align_main(args):
     rms_rmsd = RMS( RMS(deviations,1) )
     
     # ------------print and log------------ 
-    sys.stderr.write("[M::" + __name__ + "] RMS RMSD: " + str(rms_rmsd) + "\n")
-    sys.stderr.write("[M::" + __name__ + "] median RMSD: " + str(median_rmsd) + "\n")
+    print("[M::" + __name__ + "] RMS RMSD: " + str(rms_rmsd))
+    print("[M::" + __name__ + "] median RMSD: " + str(median_rmsd))
     sys.stderr.write("[M::" + __name__ + "] writing output\n")
     
     '''
