@@ -34,7 +34,9 @@ def do_pick(pairs:list,dv:list):
     good_pairs = [i for i,j in enumerate(pairs) if len(j.intersection(problematic)) == 0]
     return problematic, good_pairs
 def align_main(args):
-    filenames, output_dir, good_dir, bad_dir = args.filenames, args.output_dir, args.good_dir, args.bad_dir    
+    filenames, output_dir, good_dir, bad_dir = args.filenames, args.output_dir, args.good_dir, args.bad_dir
+    os.makedirs(good_dir,exist_ok=True)
+    os.makedirs(bad_dir, exist_ok=True)    
     # ------------------------load 3dg files--------------------------
     input_data = []
     num_structures = len(filenames)
