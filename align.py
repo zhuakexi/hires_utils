@@ -128,14 +128,17 @@ def align_main(args):
             shutil.copy(name, os.path.join(good_dir, os.path.basename(name)) )
         for name in exclude_files:
             shutil.copy(name, os.path.join(bad_dir, os.path.basename(name)) )
-        print("Exclude: ", str(exclude_files), "from rmsd calculation.")
-        print("Using: ", str(good_files), ".")
         sys.stderr.write("M:: %s: copy good files %s\n" % (__name__, str(good_files)) )
-        good_deviations = [deviations[:,i] for i in good_pairs]
-        good_deviations = np.array(good_deviations).T
-        #print("deviations", deviations.shape)
-        #print("good_deviations", good_deviations.shape)
-        deviations = good_deviations
+        if len(good_files) >= 3:
+            print("Exclude: ", str(exclude_files), "from rmsd calculation.")
+            print("Using: ", str(good_files), ".") 
+            good_deviations = [deviations[:,i] for i in good_pairs]
+            good_deviations = np.array(good_deviations).T
+            #print("deviations", deviations.shape)
+            #print("good_deviations", good_deviations.shape)
+            deviations = good_deviations
+        else:
+            print("\n\n\nBroken structure( RMSD high for MOST pairs. Unable to pick 3 from within.).\n\n\n")
     else:
         print("All structure good.")
         for name in filenames:
