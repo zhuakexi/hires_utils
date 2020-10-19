@@ -3,6 +3,7 @@ import clean_leg
 import clean_splicing
 import clean_isolated
 import script
+import pairsa
 from align import align_main
 
 def cli():
@@ -206,6 +207,36 @@ def cli():
         help="do in batch mode, long and stable at night, give filelist or directory",
         action="store_true",
         default=False   
+    )
+# --------- pairsa subcommand ------
+    pairsa_arg = subcommands.add_parser(
+        "pairsa",
+        help = "transform .pairs to user-defined pairs-like file formats. e.g. validPairs."
+    )
+    pairsa_arg.set_defaults(handle=pairsa.cli)
+    pairsa_arg.add_argument(
+        "--input",
+        dest="input_file",
+        help="input file path",
+        required=True
+    )
+    pairsa_arg.add_argument(
+        "--target",
+        dest="target",
+        help="a blank seperated string giving out target format\n\
+            must have 'chr_a' 'chr_b' 'cord_a' 'cord_b'\n\
+                the position of the column name in this 'target string' will be the position of that column\n\
+                e.g. 'id chr_a cord_a strand_a chr_b cord_b strand_b restriction_distance'\n\
+                    defined the validPairs format from HiCPro and Juicer.",
+        action="store",
+        required=True
+    )
+    pairsa_arg.add_argument(
+        "--output",
+        dest="output_file",
+        help="output file path",
+        action="store",
+        required=True
     )
 # --------- script subcommand ------
     script_arg = subcommands.add_parser(

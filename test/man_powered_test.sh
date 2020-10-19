@@ -13,4 +13,4 @@
 ## test for argument parsing
 python3 hires.py -h
 python3 hires.py pairsa -h
-python3 hires.py pairsa --target "x chr_a cord_a x chr_b cord_b" 
+python3 hires.py pairsa --input raw/test.pairs.gz --target "x chr_a cord_a x chr_b cord_b" --output out/test.validPairs.gz
