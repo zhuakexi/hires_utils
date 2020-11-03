@@ -91,3 +91,5 @@ def queue_write(res:"list of cell", out_name:str, replace:bool, filenames:list):
                 real_outnames = [line.strip() for line in f]
             for cell, real_outname in zip(res, real_outnames):
                 write_pairs(cell, real_outname)          
+def parse_i_pairs(filename:str)->"cell":
+    return cell
