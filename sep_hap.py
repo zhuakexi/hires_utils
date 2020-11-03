@@ -1,8 +1,9 @@
 import pandas as pd
 from classes import Cell, Data
-
-
-
+from hires_io import 
+def cli(args):
+    file_name, out_name = args.file_name, args.out_name
+    cell = 
 
 # --------- working module --------
 hap_word = {"1":"(mat)", "0":"(pat)"} #1 for maternal, 0 for paternal
