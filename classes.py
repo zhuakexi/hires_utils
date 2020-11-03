@@ -5,8 +5,8 @@ import pandas as pd
 #Data = namedtuple("data",["type","head","content","appendix","file"])
 Task = namedtuple("task",["data_type", "out_file", "num_thread"])
 class Data:
-    def __init__(self, type:str, head:str, content, appendix:str, file_name:str):
-        self.type = type
+    def __init__(self, dtype:str, head:str, content, appendix:str, file_name:str):
+        self.type = dtype
         self.head = head
         self.content = content
         self.appendix = appendix
