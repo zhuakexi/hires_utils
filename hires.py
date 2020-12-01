@@ -185,6 +185,7 @@ def cli():
     clean_isolated_arg_out.add_argument(
         "-o","--output",
         dest="output_file",
+        action="store",
         type=str
     )
     clean_isolated_arg_out.add_argument(
@@ -267,7 +268,7 @@ def cli():
         required=True
     )
     sep_clean_arg.add_argument(
-        "o2", "--output2",
+        "-o2", "--output2",
         dest="output_file2",
         help="output file path for .pairs (the hickit -b default format) file",
         required=True
@@ -284,7 +285,6 @@ def cli():
         type=int,
         help="check contacts in what L-0.5 range",
         default=10000000) 
-    clean_isolated_arg_out = clean_isolated_arg.add_mutually_exclusive_group(required=True)
 # --------- script subcommand ---------
     script_arg = subcommands.add_parser(
         "script",
