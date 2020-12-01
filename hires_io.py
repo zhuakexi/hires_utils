@@ -108,3 +108,14 @@ def parse_i_pairs(filename:str)->"cell":
     pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
     name, extend = divide_name(filename)
     return Cell(name, pairs_data)
+def write_i_pairs(cell:Cell, out_name:str):
+    #now use data
+    '''
+    write imputed dataframe to tab delimited zipped file
+    reserve heads, no dataframe index and headers
+    in_file == out_file will replace original file
+    '''
+    sys.stderr.write("write to %s\n" % out_name)
+    with gzip.open(out_name,"wt") as f:
+        f.write(cell.get_data("i_pairs").head)
+        cell.get_data("i_pairs").content.to_csv(f, sep="\t", header=False, index=False, mode="a")
