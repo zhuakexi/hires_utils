@@ -98,18 +98,12 @@ def parse_i_pairs(filename:str)->"cell":
     #now return Data
     with gzip.open(filename,"rt") as f:
         head = []
-        last_comment = None
         for line in f.readlines():
             if line[0] != "#":
                 break
             head.append(line)
-            last_comment= line.strip("#\n")
-    column_names = last_comment.split()[1:] 
     pairs = pd.read_table(filename, header=None,comment="#")
-    if column_names == None:
-        pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
-    else:
-        pairs.columns = column_names
+    pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
     sys.stderr.write("pairs_parser: %s parsed \n" % filename)
     pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
     name, extend = divide_name(filename)
