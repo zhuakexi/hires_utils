@@ -28,6 +28,7 @@ class Cell:
     def get_log(self):
         return "\n".join(self.logs)
     def add_data(self, data):
+        # change data as well
         self.datas[data.type] = data
     def get_data(self, data_type:str):
         return self.datas[data_type]
