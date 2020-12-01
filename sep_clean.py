@@ -1,6 +1,5 @@
 import pandas as pd
 from classes import Cell, Data
-from hires_io import 
 def cli(args):
     file_name, out_name = args.file_name, args.out_name
     cell = 
@@ -13,6 +12,8 @@ def add_ap(data:"DataFrame", row_picker:"boolean series", col_picker:"name of co
     data.loc[row_picker, col_picker].astype("string")
     data.loc[row_picker, col_picker] = data.loc[row_picker, col_picker].str.cat(ap)
 def main(cell: Cell) -> Cell:
+    # sep pairs haplotype and do clean isolated again
+    # generate .hap.pairs for 2D analysis as well as .pairs for hickit 3d building
     data = cell.get_data("i_pairs")
     frame = ["content"]
     new_frame = pd.DataFrame()
