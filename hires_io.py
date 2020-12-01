@@ -18,7 +18,7 @@ def divide_name(filename):
         return parts[0], ""
     else:
         return parts[0], "."+".".join(parts[1:]) 
-def parse_pairs(filename:str)->"dataframe":
+def parse_pairs(filename:str)->"Cell":
     '''
     read from 4DN's .pairs format
     '''
@@ -27,18 +27,16 @@ def parse_pairs(filename:str)->"dataframe":
     #now return Data
     with gzip.open(filename,"rt") as f:
         head = []
-        last_comment = None
+        #last_comment = None
         for line in f.readlines():
             if line[0] != "#":
                 break
             head.append(line)
-            last_comment= line.strip("#\n")
-    column_names = last_comment.split()[1:] 
+            #last_comment= line.strip("#\n")
+    # unless you can validate .pairs, don't get col names from last comment
+    # column_names = last_comment.split()[1:] 
     pairs = pd.read_table(filename, header=None,comment="#")
-    if column_names == None:
-        pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
-    else:
-        pairs.columns = column_names
+    pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
     sys.stderr.write("pairs_parser: %s parsed \n" % filename)
     pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
     name, extend = divide_name(filename)
@@ -92,4 +90,27 @@ def queue_write(res:"list of cell", out_name:str, replace:bool, filenames:list):
             for cell, real_outname in zip(res, real_outnames):
                 write_pairs(cell, real_outname)          
 def parse_i_pairs(filename:str)->"cell":
-    return cell
+    '''
+    read from hickit's imputed pairs
+    '''
+    #column names are in the last comment line.
+    #head are stored in cell, handler may change it.
+    #now return Data
+    with gzip.open(filename,"rt") as f:
+        head = []
+        last_comment = None
+        for line in f.readlines():
+            if line[0] != "#":
+                break
+            head.append(line)
+            last_comment= line.strip("#\n")
+    column_names = last_comment.split()[1:] 
+    pairs = pd.read_table(filename, header=None,comment="#")
+    if column_names == None:
+        pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
+    else:
+        pairs.columns = column_names
+    sys.stderr.write("pairs_parser: %s parsed \n" % filename)
+    pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
+    name, extend = divide_name(filename)
+    return Cell(name, pairs_data)
