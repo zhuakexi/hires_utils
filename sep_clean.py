@@ -4,7 +4,7 @@ from clean_isolated import clean_isolated
 from hires_io import parse_i_pairs, write_i_pairs
 def cli(args):
     file_name, out_name1, out_name2, num_thread, up_dense, up_distance = \
-        args.file_name, args.out_name1, args.out_name2, args.num_thread, args.up_dense, args.up_distance
+        args.input_file, args.output1, args.output2, args.num_thread, args.dense, args.distance
     cell = parse_i_pairs(file_name)
     cello1, cello2 = sep_clean(cell, num_thread, up_dense, up_distance)
     write_i_pairs(cello1)
@@ -12,7 +12,7 @@ def cli(args):
 
 # --------- working module --------
 hap_word = {"1":"(mat)", "0":"(pat)"} #1 for maternal, 0 for paternal
-def add_ap(data:"DataFrame", row_picker:"boolean series", col_picker:"name of column", ap:"appendix"):
+def add_ap(data:pd.DataFrame, row_picker:pd.Series, col_picker:list, ap:str):
     # add appendix for any data subset, defined by raw and col picker
     # do inplace
     # in pandas, assign value must be done in single step, don't do chained indexing
