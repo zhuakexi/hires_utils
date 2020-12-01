@@ -11,6 +11,11 @@
 
 # suppose you have test.pairs.gz in raw/ folder
 ## test for argument parsing
+#python3 hires.py -h
+#python3 hires.py pairsa -h
+#python3 hires.py pairsa --input raw/test.pairs.gz --target "x chr_a cord_a x chr_b cord_b" --output out/test.validPairs.gz
+
+# test for sep_clean
 python3 hires.py -h
-python3 hires.py pairsa -h
-python3 hires.py pairsa --input raw/test.pairs.gz --target "x chr_a cord_a x chr_b cord_b" --output out/test.validPairs.gz
+python3 hires.py sep_hap -h
+python3 hires.py sep_hap -n 4 -i test.impute.pairs.gz -o1 out/test.hap.pairs.gz -o2 out/for_hickit.pairs.gz
