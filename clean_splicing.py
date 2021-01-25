@@ -10,7 +10,7 @@ import pandas as pd
 
 
 import hires_io
-import booter
+#import booter
 from classes import Cell
 
 #chromsome contacts and reference only

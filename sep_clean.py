@@ -1,7 +1,7 @@
 import pandas as pd
 from classes import Cell, Data
-from clean_isolated import clean_isolated
-from hires_io import parse_i_pairs, write_pairs, write_i_pairs
+#from clean_isolated import clean_isolated
+#from hires_io import parse_i_pairs, write_pairs, write_i_pairs
 def cli(args):
     file_name, out_name1, out_name2, num_thread, up_dense, up_distance = \
         args.input_file, args.output_file1, args.output_file2, int(args.num_thread), int(args.dense), int(args.distance)
