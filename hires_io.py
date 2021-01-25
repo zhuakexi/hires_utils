@@ -20,27 +20,25 @@ def divide_name(filename):
         return parts[0], "."+".".join(parts[1:]) 
 def parse_pairs(filename:str)->"Cell":
     '''
-    read from 4DN's .pairs format
+    read from 4DN's standard .pairs format
+    compatible with all hickit originated pairs-like format 
     '''
-    #column names are in the last comment line.
-    #head are stored in cell, handler may change it.
-    #now return Data
+    #comment lines are stored in dataframe.attrs["comment"]
+    name_array = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
+    #read comment line
     with gzip.open(filename,"rt") as f:
-        head = []
-        #last_comment = None
+        comment = []
         for line in f.readlines():
             if line[0] != "#":
                 break
-            head.append(line)
-            #last_comment= line.strip("#\n")
-    # unless you can validate .pairs, don't get col names from last comment
-    # column_names = last_comment.split()[1:] 
-    pairs = pd.read_table(filename, header=None,comment="#")
-    pairs.columns = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1".split()
-    sys.stderr.write("pairs_parser: %s parsed \n" % filename)
-    pairs_data = Data("pairs","".join(head), pairs, ".pairs", filename)
-    name, extend = divide_name(filename)
-    return Cell(name, pairs_data)
+            comment.append(line)
+    #read table format data
+    pairs = pd.read_table(filename, header=None, comment="#")
+    pairs.attrs["comment"] = comment
+    #assign column names
+    pairs.columns = name_array[0:pairs.shape[1]]
+    #sys.stderr.write("pairs_parser: %s parsed \n" % filename)
+    return pairs
 def write_pairs(cell:Cell, out_name:str):
     #now use data
     '''
