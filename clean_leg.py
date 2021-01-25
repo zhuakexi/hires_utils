@@ -9,9 +9,7 @@ from concurrent import futures
 from functools import partial
 from collections import namedtuple
 
-from classes import Cell
 from hires_io import parse_pairs, write_pairs
-import booter
 '''
 default 4DN .pairs format
 READID, chr1, pos1, chr2, pos2, STRAND1, STRAND2 = 0,1,2,3,4,5,6
