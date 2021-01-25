@@ -2,7 +2,7 @@ import argparse
 import clean_leg
 import clean_splicing
 import clean_isolated
-import script
+#import script
 import pairsa
 import sep_clean
 from align import align_main
