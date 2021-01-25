@@ -55,10 +55,10 @@ def cli():
                             help="clean exon splicing from mRNA in contact file")
     clean_splicing_arg.set_defaults(handle=clean_splicing.cli)
     clean_splicing_arg.add_argument(
-                            dest="filenames",
+                            dest="filename",
                             metavar="INPUT_FILE",
                             help="input filename",
-                            nargs="*")     
+                            nargs=1)     
     clean_splicing_arg.add_argument(
                             "-r", "--reference", 
                             dest="index_file_name",
@@ -103,7 +103,7 @@ def cli():
 #--------- align subcommand ------
     align = subcommands.add_parser(
                             "align",
-                            help="caculate rmsd between .3dg replicates"
+                            help="caculate rmsd between .3dg replicates, print to stdout"
     )
     align.set_defaults(handle=align_main)
     align.add_argument(
