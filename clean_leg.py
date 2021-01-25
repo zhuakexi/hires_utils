@@ -41,10 +41,11 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
     sys.stderr.write("clean_leg: 1/%d chunk done\n"%thread)
     return contacts[~mask]
 def cli(args):
-    filenames, num_thread, out_name, max_distance, max_count = \
-        args.filenames, args.thread, args.out_name, args.max_distance, args.max_count
-    working_function = partial(clean_leg, num_thread=num_thread, max_count=max_count, max_distance=max_distance)
-    return booter.single(working_function, filenames, outname, num_thread)
+    in_name, num_thread, out_name, max_distance, max_count = \
+        args.filenames, args.thread, args.outname, args.max_distance, args.max_count
+    cell = parse_pairs(in_name)
+    res = clean_leg(cell, num_thread, max_distance, max_count)
+    write_pairs(res, out_name)
     
 def clean_leg(cell:Cell, num_thread:int, max_distance:int, max_count:int):
     #merge left and right legs, hash by chromosome_names
