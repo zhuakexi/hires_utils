@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 
 from hires_io import parse_pairs, write_pairs
-import booter
 
 def L_half(contact1, contact2):
     '''
@@ -48,26 +47,19 @@ def clean_contacts_in_pair(contacts:"dataframe", up_dense, up_distance)->"datafr
     sys.stderr.write("(%s, %s): %d --> %d\n" %(contacts.iloc[0]["chr1"], contacts.iloc[0]["chr2"], len(contacts),len(contacts[~mask])) )
     return contacts[~mask]
 def cli(args):
-    filenames, out_name, num_thread, up_dense, up_distance, batch_switch, replace, parallel_switch = \
-        args.filenames, args.output_file, args.thread, args.dense, args.distance, args.batch_switch, args.replace_switch, args.parallel_switch
-    working_function = partial(clean_isolated, num_thread=num_thread, up_dense=up_dense, up_distance=up_distance)
-    if parallel_switch == True:
-        return booter.parallel(working_function, filenames, out_name, replace)
-    if batch_switch == True:
-        return booter.batch(working_function, filenames, out_name, replace)
-    if not parallel_switch and not batch_switch:
-        if len(filenames) > 1:
-            return booter.multi(working_function, filenames, out_name, replace, num_thread)
-        else:
-            return booter.single(working_function, filenames, out_name, replace)
-def clean_isolated(cell, num_thread, up_dense, up_distance):
+    filename, out_name, num_thread, up_dense, up_distance = \
+        args.filename[0], args.output_file, args.thread, args.dense, args.distance
+    #working_function = partial(clean_isolated, num_thread=num_thread, up_dense=up_dense, up_distance=up_distance)
+    pairs = parse_pairs(filename)
+    write_pairs(clean_isolated(pairs, num_thread, up_dense, up_distance), out_name)
+def clean_isolated(pairs, num_thread, up_dense, up_distance):
     t0 = time.time()
-    input_data = ( value for key, value in cell.get_data("pairs").content.groupby(["chr1","chr2"]) )
+    input_data = ( value for key, value in pairs.groupby(["chr1", "chr2"]))
     working_func = partial(clean_contacts_in_pair, up_dense=up_dense, up_distance=up_distance)
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     cleaned = pd.concat(res, axis=0)
-    print("clean_isolated: %d contacts removed in %s" % (len(cell.get_data("pairs").content)-len(cleaned), cell.name))
+    cleaned.attrs = pairs.attrs # groupby don't keep attrs
+    print("clean_isolated: %d contacts removed in %s" % (len(pairs)-len(cleaned), pairs.attrs["name"]))
     sys.stderr.write("clean_isolated: finished in %.2fs\n"%(time.time()-t0))
-    cell.get_data("pairs").content = cleaned
-    return cell
+    return cleaned
