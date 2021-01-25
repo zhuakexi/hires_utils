@@ -43,10 +43,13 @@ def parse_pairs(filename:str)->"Cell":
 def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     write dataframe to tab delimited zipped file
-    reserve comment lines, no dataframe index and headers
-    need to change comment line with data's real column names
+    reserve comment lines, no dataframe index
+    headers store in last comment line
+    need to sort with upper triangle label
     '''
     #sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(out_name,"wt") as f:
-        f.write(pairs.attrs["comments"])
+        pairs.attrs["comments"].pop()
+        pairs.attrs["comments"].append("#" + "\t".join(pairs.columns) + "\n")
+        f.write("".join(pairs.attrs["comments"]))
         pairs.to_csv(f, sep="\t", header=False, index=False, mode="a")
