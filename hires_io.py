@@ -27,14 +27,15 @@ def parse_pairs(filename:str)->"Cell":
     name_array = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
     #read comment line
     with gzip.open(filename,"rt") as f:
-        comment = []
+        comments = []
         for line in f.readlines():
             if line[0] != "#":
                 break
-            comment.append(line)
+            comments.append(line)
     #read table format data
     pairs = pd.read_table(filename, header=None, comment="#")
-    pairs.attrs["comment"] = comment
+    pairs.attrs["comments"] = comments
+    pairs.attrs["name"], _ = divide_name(filename) # get real sample name
     #assign column names
     pairs.columns = name_array[0:pairs.shape[1]]
     #sys.stderr.write("pairs_parser: %s parsed \n" % filename)
@@ -47,5 +48,5 @@ def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     #sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(out_name,"wt") as f:
-        f.write(pairs.attrs["comment"])
+        f.write(pairs.attrs["comments"])
         pairs.to_csv(f, sep="\t", header=False, index=False, mode="a")
