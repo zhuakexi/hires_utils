@@ -41,20 +41,11 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
     sys.stderr.write("clean_leg: 1/%d chunk done\n"%thread)
     return contacts[~mask]
 def cli(args):
-    filenames, num_thread, replace, out_name, max_distance, max_count, batch_switch, parallel_switch = \
-        args.filenames, args.thread, args.replace_switch, args.out_name, args.max_distance, args.max_count, args.batch_switch, args.parallel_switch
+    filenames, num_thread, out_name, max_distance, max_count = \
+        args.filenames, args.thread, args.out_name, args.max_distance, args.max_count
     working_function = partial(clean_leg, num_thread=num_thread, max_count=max_count, max_distance=max_distance)
-    '''
-    if parallel_switch == True:
-        return booter.parallel(working_function, filenames, out_name, replace)
-    if batch_switch == True:
-        return booter.batch(clean_leg, filenames, out_name, replace, num_thread)
-    '''
-    if not parallel_switch and not batch_switch:
-        if len(filenames) > 1:
-            return booter.multi(working_function, filenames, out_name, replace, num_thread)
-        else:
-            return booter.single(working_function, filenames, out_name, replace)
+    return booter.single(working_function, filenames, outname, num_thread)
+    
 def clean_leg(cell:Cell, num_thread:int, max_distance:int, max_count:int):
     #merge left and right legs, hash by chromosome_names
     t0 = time.time()
