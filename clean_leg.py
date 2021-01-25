@@ -41,29 +41,28 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
 def cli(args):
     in_name, num_thread, out_name, max_distance, max_count = \
         args.filenames, args.thread, args.outname, args.max_distance, args.max_count
-    cell = parse_pairs(in_name)
-    res = clean_leg(cell, num_thread, max_distance, max_count)
+    pairs = parse_pairs(in_name)
+    res = clean_leg(pairs, num_thread, max_distance, max_count)
     write_pairs(res, out_name)
     
-def clean_leg(cell:Cell, num_thread:int, max_distance:int, max_count:int):
+def clean_leg(pairs, num_thread:int, max_distance:int, max_count:int):
     #merge left and right legs, hash by chromosome_names
     t0 = time.time()
-    left, right = cell.get_data("pairs").content[["chr1","pos1"]], cell.get_data("pairs").content[["chr2","pos2"]]
+    left, right = pairs[["chr1","pos1"]], pairs[["chr2", "pos2"]]
     left.columns, right.columns = ("chr","pos"), ("chr","pos")
     all_legs = pd.concat((left,right), axis=0, ignore_index=True)
     sorted_legs = {key:value.sort_values(by="pos",axis=0,ignore_index=True) for key, value in all_legs.groupby("chr")}
     sys.stderr.write("clean_leg: group sort in %.2fs\n"%(time.time()-t0))
     #multithread filtering
     t0=time.time()
-    input = np.array_split(cell.get_data("pairs").content, num_thread, axis=0)
-    working_func = partial(clean_promiscuous,sorted_legs=sorted_legs, 
+    input_data = np.array_split(pairs, num_thread, axis=0)
+    working_func = partial(clean_promiscuous, sorted_legs=sorted_legs, 
                            thread=num_thread, max_distance=max_distance, max_count=max_count)
     with futures.ProcessPoolExecutor(num_thread) as executor:
-        res = executor.map(working_func, input)
+        res = executor.map(working_func, input_data)
     result = pd.concat(res, axis=0)
-    print("clean_leg: remove %d contacts in %s\n"%(len(cell.get_data("pairs").content)-len(result), cell.name))
+    print("clean_leg: remove %d contacts in %s\n"%(len(pairs)-len(result), pairs.attrs["name"]))
     sys.stderr.write("clean_leg: finished in %.2fs\n"%(time.time()-t0))
-    cell.get_data("pairs").content = result
-    return cell
+    return pairs
 
     
