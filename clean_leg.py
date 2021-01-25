@@ -40,7 +40,7 @@ def clean_promiscuous(contacts:"dataframe", sorted_legs:dict, thread:int, max_di
     return contacts[~mask]
 def cli(args):
     in_name, num_thread, out_name, max_distance, max_count = \
-        args.filenames, args.thread, args.outname, args.max_distance, args.max_count
+        args.filename, args.thread, args.outname, args.max_distance, args.max_count
     pairs = parse_pairs(in_name)
     res = clean_leg(pairs, num_thread, max_distance, max_count)
     write_pairs(res, out_name)
