@@ -285,55 +285,6 @@ def cli():
         type=int,
         help="check contacts in what L-0.5 range",
         default=10000000) 
-# --------- script subcommand ---------
-    script_arg = subcommands.add_parser(
-        "script",
-        help = "handle from fastq to mmCIF, with multiple cell"
-    )
-    script_arg.set_defaults(handle=script.cli)
-    script_arg.add_argument(
-        dest="filenames",
-        help="doubled fastq files, or paired single fastq files( check the --paired_in option), or a directory.",
-        nargs="+"
-    )
-    script_arg.add_argument(
-        "-o","--output",
-        dest="out_name",
-        help="output directory, with all mid-files in( check -sub or -cell option for more tidier organization).",
-        metavar="DIR/",
-        action="store",
-        required=True
-    )
-    ## directory architectual options
-    dir_arch = script_arg.add_mutually_exclusive_group()
-    dir_arch.add_argument(
-        "-sub","--by_type",
-        dest="sub_dir_switch",
-        help="using subdirectories like seg/ pairs/ 3dg/ to store output, create if not prepared.",
-        action="store_true",
-        default=False
-    )
-    dir_arch.add_argument(
-        "-cell","--by_cell",
-        dest="by_cell_switch",
-        help="using cell name as subdirecotries.",
-        action="store_true",
-        default=False
-    )
-    script_arg.add_argument(
-        "-pr", "--paired_in",
-        dest="paired_switch",
-        help="use single fastq file with both reads and mate reads in.",
-        action="store_true",
-        default=False
-    )
-    script_arg.add_argument(
-        "-t", "--num_thread",
-        dest="num_thread",
-        help="thread used on one cell(Notion:not the total core number allocated).",
-        action="store",
-        default=4
-    )
 
     args = parser.parse_args()
     #print(args.replace_switch)
