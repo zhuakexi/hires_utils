@@ -16,15 +16,15 @@ def cli():
                             help="clean promiscuous legs that contacts with multiple legs")
     clean_leg_arg.set_defaults(handle=clean_leg.cli)
     clean_leg_arg.add_argument(
-                            dest="filenames",
+                            dest="filename",
                             metavar="INPUT_FILE",
-                            nargs="*")
+                            nargs=1)
     clean_leg_arg.add_argument(
                             "-t", "--thread",
                             type=int,
                             dest="thread",
                             action="store",
-                            default=20,
+                            default=4,
                             help="set thread number")
     clean_leg_arg.add_argument(
                             "-d","--distance",
@@ -44,31 +44,10 @@ def cli():
                             default=10,
                             help="number threshold of adjacent legs"
     )                   
-    clean_leg_arg_out = clean_leg_arg.add_mutually_exclusive_group(required=True)
-    clean_leg_arg_out.add_argument("-s", "--replace", 
-                            dest="replace_switch", 
-                            action="store_true", 
-                            default=False,
-                            help="do clean in-place and replace input file")
-    clean_leg_arg_out.add_argument("-o", "--output", 
+    clean_leg_arg.add_argument("-o", "--output", 
                             dest="out_name", action="store",
+                            metavar="OUTPUT_FILE",
                             help="set output file name, or output file appendix for multiple file")
-    ##parsing different strategy
-    clean_leg_arg_strategy = clean_leg_arg.add_mutually_exclusive_group()
-    clean_leg_arg_strategy.add_argument(
-                            "-p", "--parallel",
-                            dest = "parallel_switch",
-                            help="do in parallel mode, maximum throghput, give filelist or directory",
-                            action="store_true",
-                            default=False
-    )                                           
-    clean_leg_arg_strategy.add_argument(
-        "-b", "--batch",
-        dest = "batch_switch",
-        help="do in batch mode, long and stable at night, give filelist or directory",
-        action="store_true",
-        default=False
-    ) 
  # ---------#clean_splicing sub command ---
     clean_splicing_arg = subcommands.add_parser(
                             "clean_splicing", 
