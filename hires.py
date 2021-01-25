@@ -47,7 +47,8 @@ def cli():
     clean_leg_arg.add_argument("-o", "--output", 
                             dest="out_name", action="store",
                             metavar="OUTPUT_FILE",
-                            help="set output file name, or output file appendix for multiple file")
+                            required=True,
+                            help="set output file name")
  # ---------#clean_splicing sub command ---
     clean_splicing_arg = subcommands.add_parser(
                             "clean_splicing", 
