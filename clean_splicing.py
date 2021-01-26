@@ -3,15 +3,11 @@ import pickle
 import random
 import time
 import gzip
-import argparse
-from functools import partial
 
 import pandas as pd
 
 
-import hires_io
-#import booter
-from classes import Cell
+from hires_io import parse_pairs, write_pairs
 
 #chromsome contacts and reference only
 regular_chromsome_names = ["chr" + str(i) for i in range(1,23)]
@@ -65,20 +61,13 @@ def block_search(bin_index:"dict of list", binsize:int, cell:"dataframe")->"data
     return hit_contacts, cleaned_contacts
 
 def cli(args)->int:
-    BINSIZE, index_name, filenames, out_name, replace, parallel_switch, batch_switch = \
-        args.binsize, args.index_file_name, args.filenames, args.out_name, args.replace_switch, args.parallel_switch, args.batch_switch
-    working_function = partial(clean_splicing, index_name=index_name, BINSIZE=BINSIZE)
-    if parallel_switch == True:
-        return booter.parallel(working_function, filenames, out_name, replace)
-    if batch_switch == True:
-        return booter.batch(working_function, filenames, out_name, replace)
-    if not parallel_switch and not batch_switch:
-        if len(filenames) > 1:
-            return booter.multi(working_function, filenames, out_name, replace)
-        else:
-            return booter.single(working_function, filenames, out_name, replace)
+    BINSIZE, index_name, filename, out_name = \
+        args.binsize, args.index_file_name, args.filename[0], args.out_name
+    pairs = parse_pairs(filename)
+    cleaned = clean_splicing(pairs, index_name, BINSIZE)
+    write_pairs(cleaned, out_name)
 #def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
-def clean_splicing(cell:Cell, index_name:str, BINSIZE:int)->Cell:
+def clean_splicing(pairs:pd.DataFrame, index_name:str, BINSIZE:int)->pd.DataFrame:
     '''
     clean contacts from splicing
     '''
@@ -86,7 +75,6 @@ def clean_splicing(cell:Cell, index_name:str, BINSIZE:int)->Cell:
     with open(index_name,"rb") as f:
         bin_index = pickle.load(f)
     # do searching
-    hit, cleaned = block_search(bin_index, BINSIZE, cell.get_data("pairs").content)
-    print("clean_splicing: %d contacts removed in %s\n" %(len(hit), cell.name) )
-    cell.get_data("pairs").content = cleaned
-    return cell
+    hit, cleaned = block_search(bin_index, BINSIZE, pairs)
+    print("clean_splicing: %d contacts removed in %s\n" %(len(hit), pairs.attrs["name"]) )
+    return cleaned

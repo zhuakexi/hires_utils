@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-import rmsd
+#import rmsd
 import shutil
 import os
 
