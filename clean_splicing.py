@@ -1,80 +1,72 @@
 import sys
-import pickle
-import random
 import time
 import gzip
-
+from concurrent import futures
+from functools import partial
 import pandas as pd
 
 
-from hires_io import parse_pairs, write_pairs
-
-#chromsome contacts and reference only
-regular_chromsome_names = ["chr" + str(i) for i in range(1,23)]
-regular_chromsome_names.extend(["chrX","chrY"])
-
-def bin_parser(file_name, regular="off"):
-    '''
-    read bin.bed file
-    return dictionary of bins by chromsome
-    '''
-    time_begin = time.time()
-    bins = pd.read_table(file_name, header=None)
-    sys.stderr.write("bin_parser parsing time: " + str(time.time() - time_begin) + "\n")
-    grouped = bins.groupby(0) #group by chromsome names
-    if regular == "on":
-        return {key:value.values for key,value in grouped if key in regular_chromsome_names}
-        #return [bin for bin in bins.values if bin[0] in regular_chromsome_names]
-    return {key:value.values for key,value in grouped}
-def filt_in_exon(locus, exons):
-    '''
-    filter out exons envolope the locus
-    '''
-    return [exon for exon in exons if exon[0] <= locus <= exon[1]]
-def key_to_index(locus, bin_size):
-    '''
-    in bin_index
-    '''
-    return locus//bin_size
-def in_exon(contact:"line", bin_index:dict, binsize:int)->bool:
-    '''
-    whether both leg of a contact are in exons from same gene
-    '''
-    if contact["chr1"] != contact["chr2"]:
-        return False
-    left_index, right_index = key_to_index(contact["pos1"], binsize), key_to_index(contact["pos2"], binsize)
-    left_hit_exons = filt_in_exon(contact["pos1"], bin_index[contact["chr1"]][left_index])
-    if left_hit_exons != []:
-        right_hit_exons = filt_in_exon(contact["pos2"], bin_index[contact["chr2"]][right_index])
-        left_hit_genes = set([exon[2] for exon in left_hit_exons])
-        right_hit_genes = set([exon[2] for exon in right_hit_exons])
-        return left_hit_genes.intersection(right_hit_genes) != set()
-    else:
-        return False
-def block_search(bin_index:"dict of list", binsize:int, cell:"dataframe")->"data_frame":
-    t0 = time.time()
-    #vectorize using .pairs, target form
-    mask = cell.apply(in_exon, axis=1, bin_index=bin_index, binsize=binsize)
-    hit_contacts = cell[mask]
-    cleaned_contacts = cell[~mask]
-    sys.stderr.write("block_search searching time: %.2fs\n" % (time.time()-t0))
-    return hit_contacts, cleaned_contacts
+from hires_io import parse_pairs, parse_gtf, write_pairs
 
 def cli(args)->int:
-    BINSIZE, index_name, filename, out_name = \
-        args.binsize, args.index_file_name, args.filename[0], args.out_name
+    filename, gtf_file, out_name, thread = \
+        args.filename[0], args.gtf_filename, args.out_name, args.num_thread
+    # parsing ref gtf and pairs file
     pairs = parse_pairs(filename)
-    cleaned = clean_splicing(pairs, index_name, BINSIZE)
+    # build in-mem exon index
+    gtf = parse_gtf(gtf_file)
+    ref = build_in_memory_index(get_exon(gtf))
+    # do search
+    cleaned = clean_splicing(pairs, ref, thread)
     write_pairs(cleaned, out_name)
-#def clean_splicing_main(cell_name, out_name, index_name, BINSIZE):
-def clean_splicing(pairs:pd.DataFrame, index_name:str, BINSIZE:int)->pd.DataFrame:
+def get_exon(gtf:pd.DataFrame) -> pd.DataFrame:
+    # extract exon-gene_name from gtf table
+    relevant = gtf.query('feature == "exon" & source == "HAVANA"') #using HAVANA only
+    gene_id = relevant["group"].str.extract('gene_id "(ENSG[0-9]{11}.[0-9])";') #extract gene name from group
+    gene_id.columns = ["gene_id"] # extract returns dataframe rather than series
+    # don't mind strand
+    return pd.concat([relevant.drop(["group","feature","source","score","strand","frame"],axis=1),gene_id],axis=1)
+def build_in_memory_index(exons:pd.DataFrame) -> dict:
+    # split by chr and using IntervalIndex to enable searching
+    ref_dict = {key : value for key, value in exons.groupby("seqname")}
+    # build index by chromosome
+    for chromosome in ref_dict:
+        # using start, end attrs as index
+        by_chr_table = ref_dict[chromosome]
+        bed_tuple = by_chr_table.set_index(['start','end']).index 
+        bed_interval_index = pd.IntervalIndex.from_tuples(bed_tuple)
+        by_chr_table.index = bed_interval_index
+        ref_dict[chromosome] = by_chr_table.drop(["start","end","seqname"],axis=1)
+    sys.stderr.write("hires_utils::clean_splicing: index done.\n")
+    return ref_dict
+def legs_co_gene(contact:pd.Series, chromosome:str, ref_dict:dict)->bool:
+    # whether two legs of contacts are in same gene's exon
+    # must be intra contacts
+    pos1, pos2 = contact["pos1"], contact["pos2"]
+    result = ref_dict[chromosome][ref_dict[chromosome].index.contains(pos1)]
+    if len(result[result.index.contains(pos2)]) > 0:
+        return True
+    else:
+        return False
+def search_chromosome(contacts_at_chromosome:tuple, ref:dict)->pd.DataFrame:
+    # search whole chromosome using F::legs_co_gene
+    # single chr searching for multi-process calling
+    chromosome, contacts = contacts_at_chromosome[0], contacts_at_chromosome[1]
+    hit_index = contacts.apply(legs_co_gene, chromosome=chromosome, ref_dict=ref, axis=1)
+    return contacts[hit_index]
+
+def clean_splicing(pairs:pd.DataFrame, ref:dict, thread:int)->pd.DataFrame:
     '''
     clean contacts from splicing
     '''
-    # load directly from pickled bin_index
-    with open(index_name,"rb") as f:
-        bin_index = pickle.load(f)
-    # do searching
-    hit, cleaned = block_search(bin_index, BINSIZE, pairs)
-    print("clean_splicing: %d contacts removed in %s\n" %(len(hit), pairs.attrs["name"]) )
+    intra = pairs.query('chr1 == chr2') # only search for intra
+    working_func = partial(search_chromosome, ref=ref) # pool.map can't take multiple iterable as arguments
+    input_data = [(chromosome, per_chr_contacts) for chromosome, per_chr_contacts in intra.groupby("chr1")] # pool.map can't take additional keyword argument
+    sys.stderr.write("hires_utils::clean_splicing: input parsed, search in %d thread\n" % thread)
+    # do multi-thread searching
+    with futures.ProcessPoolExecutor(thread) as pool:
+        res = pool.map(working_func, input_data)
+    result = pd.concat(res, axis=0) # contained contacts
+    cleaned = pairs.drop(result.index, axis=0) # clean contacts
+    print("clean_splicing: %d contacts removed in %s\n" %(len(result), pairs.attrs["name"]) )
     return cleaned
