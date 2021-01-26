@@ -71,32 +71,11 @@ def cli():
                             dest="binsize",
                             type=int,
                             default=10000)
-    ##parsing different strategy
-    clean_splicing_arg_strategy = clean_splicing_arg.add_mutually_exclusive_group()
-    clean_splicing_arg_strategy.add_argument(
-                            "-p", "--parallel",
-                            dest = "parallel_switch",
-                            help="do in parallel mode, maximum throghput, give filelist or directory",
-                            action="store_true",
-                            default=False
-    )                                           
-    clean_splicing_arg_strategy.add_argument(
-        "-b", "--batch",
-        dest = "batch_switch",
-        help="do in batch mode, long and stable at night, give filelist or directory",
-        action="store_true",
-        default=False
-    )  
-    clean_splicing_arg_out = clean_splicing_arg.add_mutually_exclusive_group(required=True)
-    clean_splicing_arg_out.add_argument(
-                            "-s", "--replace", 
-                            dest="replace_switch", 
-                            help="do clean in-place", 
-                            action="store_true", 
-                            default=False)
-    clean_splicing_arg_out.add_argument(
+    clean_splicing_arg.add_argument(
                             "-o", "--output", 
-                            dest="out_name", 
+                            dest="out_name",
+                            metavar="OUTPUT_FILE",
+                            required=True, 
                             help="output file name", 
                             action="store")
     
