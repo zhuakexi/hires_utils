@@ -61,16 +61,11 @@ def cli():
                             nargs=1)     
     clean_splicing_arg.add_argument(
                             "-r", "--reference", 
-                            dest="index_file_name",
+                            dest="gtf_filename",
                             type = str,
                             action="store", 
-                            help="exon index file, use 'build' sub-command to build from scratch.", 
-                            default="bin_10k_FULL_index")
-    clean_splicing_arg.add_argument(
-                            "-bin", "--binsize",
-                            dest="binsize",
-                            type=int,
-                            default=10000)
+                            help="annotation gtf file", 
+                            required=True)
     clean_splicing_arg.add_argument(
                             "-o", "--output", 
                             dest="out_name",
@@ -78,6 +73,13 @@ def cli():
                             required=True, 
                             help="output file name", 
                             action="store")
+    clean_splicing_arg.add_argument(
+                            "-t", "--thread",
+                            type=int,
+                            dest="num_thread",
+                            action="store",
+                            default=4,
+                            help="set thread number")
     
 #--------- align subcommand ------
     align = subcommands.add_parser(
