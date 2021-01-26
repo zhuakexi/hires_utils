@@ -184,49 +184,51 @@ def cli():
     )
 # --------- sep_clean subcommand ---------
     sep_clean_arg = subcommands.add_parser(
-        "sep_clean",
-        help = "seperate homologous chromosome(add (mat)/(pat) for chra chrb colomns), clean isolated contacts again. \
-            generate one more hickit compatible output file.\
-                works with hickit imputed pairs file"
+                            "sep_clean",
+                            help = "seperate homologous chromosome(add (mat)/(pat) for chra chrb colomns), clean isolated contacts again. \
+                                generate one more hickit compatible output file.\
+                                    works with hickit imputed pairs file"
     )
     sep_clean_arg.set_defaults(handle=sep_clean.cli)
     sep_clean_arg.add_argument(
-        "-i", "--input",
-        dest="input_file",
-        help="input file path",
-        required=True
+                            dest="filename",
+                            metavar="INPUT_FILE",
+                            help="input filename",
+                            nargs=1
     )
     sep_clean_arg.add_argument(
-        "-n", "--num_thread",
-        dest="num_thread",
-        help="number of thread use",
-        default="4"
+                            "-n", "--num_thread",
+                            dest="num_thread",
+                            help="number of thread use",
+                            default="4"
     )
     sep_clean_arg.add_argument(
-        "-o1", "--output1",
-        dest="output_file1",
-        help="output file path for .hap.pairs (the chra(mat) format) file",
-        action="store",
-        required=True
+                            "-o1", "--output1",
+                            dest="output_file1",
+                            help="output file path for .dip.pairs (the chra(mat) format) file",
+                            action="store",
+                            required=True
     )
     sep_clean_arg.add_argument(
-        "-o2", "--output2",
-        dest="output_file2",
-        help="output file path for .pairs (the hickit -b default format) file",
-        required=True
+                            "-o2", "--output2",
+                            dest="output_file2",
+                            help="output file path for .pairs (the hickit -b default format) file",
+                            required=True
     )
     sep_clean_arg.add_argument(
-        "-m","--dense",
-        dest="dense",
-        type=int,
-        help="number of contacts in proximity",
-        default=5)
+                            "-m","--dense",
+                            dest="dense",
+                            type=int,
+                            help="number of contacts in proximity",
+                            default=5
+    )
     sep_clean_arg.add_argument(
-        "-d","--distance",
-        dest="distance",
-        type=int,
-        help="check contacts in what L-0.5 range",
-        default=10000000) 
+                            "-d","--distance",
+                            dest="distance",
+                            type=int,
+                            help="check contacts in what L-0.5 range",
+                            default=10000000
+    ) 
 
     args = parser.parse_args()
     #print(args.replace_switch)
