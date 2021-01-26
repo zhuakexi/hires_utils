@@ -42,7 +42,8 @@ def sep_clean(pairs: pd.DataFrame, num_thread:int, up_dense:int, up_distance:int
         add_ap(pairs, row_picker, "chr1", hap_word[code[0]])
         add_ap(pairs, row_picker, "chr2", hap_word[code[1]])
         dip_frame = pd.concat([dip_frame, pairs.loc[row_picker, :]])
+    dip_frame.attrs = hickit_frame.attrs = pairs.attrs
     dip_frame = clean_isolated(dip_frame, num_thread, up_dense, up_distance) # clean isolated contacts for newly generated chromosomes
     hickit_frame = clean_isolated(hickit_frame, num_thread, up_dense, up_distance)
-    dip_frame.attrs = hickit_frame.attrs = pairs.attrs
+    
     return dip_frame, hickit_frame
