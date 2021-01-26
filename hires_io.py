@@ -4,7 +4,6 @@ import gzip
 import os
 import pandas as pd
 
-from classes import Cell, Data
 
 '''
 work with local pairs file generated from hickit
@@ -40,6 +39,11 @@ def parse_pairs(filename:str)->"Cell":
     pairs.columns = name_array[0:pairs.shape[1]]
     #sys.stderr.write("pairs_parser: %s parsed \n" % filename)
     return pairs
+def parse_gtf(filename:str) -> pd.DataFrame:
+    # read gtf, get exons
+    gencode = pd.read_table(filename, comment="#", header=None)
+    gencode.columns="seqname source feature start end score strand frame group".split()
+    return gencode
 def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     write dataframe to tab delimited zipped file
