@@ -54,6 +54,6 @@ def write_pairs(pairs:pd.DataFrame, out_name:str):
     #sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(out_name,"wt") as f:
         pairs.attrs["comments"].pop()
-        pairs.attrs["comments"].append("#" + "\t".join(pairs.columns) + "\n")
+        pairs.attrs["comments"].append("#columns:" + "\t".join(pairs.columns) + "\n")
         f.write("".join(pairs.attrs["comments"]))
         pairs.to_csv(f, sep="\t", header=False, index=False, mode="a")
