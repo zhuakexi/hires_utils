@@ -21,7 +21,7 @@ def pick_good(rmsds:dict, threshold:float=2) -> set:
     #    name of good_structures
     ##get all structure name(represent by int index)
     problematic = set()
-    for pair in pairs:
+    for pair in rmsds.keys():
         problematic = problematic | set(pair)
         good = problematic | set(pair)
     ##pick bad structure(clustering here may be better)
