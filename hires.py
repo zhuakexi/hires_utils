@@ -5,7 +5,7 @@ import clean_isolated
 #import script
 import pairsa
 import sep_clean
-from align import align_main
+import chrom_rmsd
 
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
