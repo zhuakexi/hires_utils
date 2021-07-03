@@ -45,9 +45,10 @@ def combine_binary(samples:list, data:dict, func)->dict:
     for pair in combinations(samples, 2):
         res[pair] = func(data[pair[0]], data[pair[1]])
     return res
-def align_main(args):
-    filenames, result_log = args.filenames, args.result_log   
-    
+def cli(args):
+    filenames, result_log = args.filenames, args.result_log 
+    chrom_rmsd(filenames, result_log)
+def chrom_rmsd(filenames, result_log):
     # load 3dg file
     
     ## inner names/index of different structures
