@@ -78,7 +78,7 @@ def chrom_rmsd(filenames, result_log):
         final_RMSD = RMS(good_rmsds)
 
     # output
-
+    good_files = list(name_mapping[good].values)
     with open(result_log, "wt") as f:
         f.write("#" + str(final_RMSD) + "\n")
         f.writelines("\n".join(good_files))
