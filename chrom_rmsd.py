@@ -68,7 +68,9 @@ def chrom_rmsd(filenames, result_log):
     # calc filan RMSD between good structures
     good = list(pick_good(rmsds))
     if len(good) < 3:
-        final_RMSD = RMS(rmsds)
+        final_RMSD = RMS(
+                        list(rmsds.values())
+                        )
     else:
         good_rmsds = np.array(list(
                 combine_binary(good, 
