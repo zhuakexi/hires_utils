@@ -93,6 +93,7 @@ def cli():
                             nargs="*"
     )
     rmsd_arg.add_argument(
+                            "-o", "--output",
                             dest="result_log",
                             metavar="RESULT_LOG_FILE",
                             help="a log file to aggregate stat info, useful in workflow",
