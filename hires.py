@@ -80,38 +80,26 @@ def cli():
                             action="store",
                             default=4,
                             help="set thread number")
-    
-#--------- align subcommand ------
-    align = subcommands.add_parser(
-                            "align",
-                            help="caculate rmsd between .3dg replicates, print to stdout"
+#--------- chrom_rmsd subcommand ------
+    rmsd_arg = subcommands.add_parser(
+                            "rmsd",
+                            help="calculate rmsd between .3dg replicates, pick good ones"
     )
-    align.set_defaults(handle=align_main)
-    align.add_argument(
+    rmsd_arg.set_defaults(handle=chrom_rmsd.cli)
+    rmsd_arg.add_argument(
                             dest="filenames",
                             metavar="INPUT_FILE",
                             help="input filename",
                             nargs="*"
     )
-    align.add_argument(
-                            "-o","--output_dir",
-                            dest="output_dir",
+    rmsd_arg.add_argument(
+                            dest="result_log",
+                            metavar="RESULT_LOG_FILE",
+                            help="a log file to aggregate stat info, useful in workflow",
                             type=str,
-                            help="directory to store aligned 3dg file and rmsd info file",
                             required=True
     )
-    align.add_argument(
-        "-gd", "--good_dir",
-        dest="good_dir",
-        help="output directory for good(low rmsd) structure.",
-        required=True
-    )
-    align.add_argument(
-        "-bd", "--bad_dir",
-        dest="bad_dir",
-        help="output directory for bad(causing high rmsd) structure.",
-        required=True
-    )
+
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
