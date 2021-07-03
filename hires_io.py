@@ -44,6 +44,13 @@ def parse_gtf(filename:str) -> pd.DataFrame:
     gencode = pd.read_table(filename, comment="#", header=None)
     gencode.columns="seqname source feature start end score strand frame group".split()
     return gencode
+def parse_3dg(filename:str)->pd.DataFrame:
+    # read in hickit 3dg file(or the .xyz file)
+    s = pd.read_table(filename, 
+                      comment="#",header=None,
+                     index_col=[0,1])
+    s.columns = "x y z".split()
+    return s
 def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     write dataframe to tab delimited zipped file
