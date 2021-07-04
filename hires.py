@@ -6,6 +6,7 @@ import clean_isolated
 import pairsa
 import sep_clean
 import chrom_rmsd
+import clean3
 
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
@@ -100,7 +101,52 @@ def cli():
                             type=str,
                             required=True
     )
-
+#--------- clean3 subcommand ------
+    clean3_arg = subcommands.add_parser(
+                            "clean3",
+                            help="clean 3dg particles poorly supported by contacts"
+    )
+    clean3_arg.set_defaults(handle=clean3.cli)
+    clean3_arg.add_argument(
+                            "-i","--input",
+                            dest="filename",
+                            metavar="STRUCTURE_FILE",
+                            help=".3dg/.xyz format structure file to clean",
+                            type=str,
+                            required=True
+    )
+    clean3_arg.add_argument(
+                            "-r", "--reference",
+                            dest="ref_filename",
+                            metavar="PAIRS",
+                            help=".pairs format contact file",
+                            type=str,
+                            required=True
+    )
+    clean3_arg.add_argument(
+                            "-o", "--output",
+                            dest="output",
+                            metavar="CLEANED",
+                            help="file name of the output cleaned structure file",
+                            type=str,
+                            required=True
+    )
+    clean3_arg.add_argument(
+                            "-q", "--quantile",
+                            dest="quantile",
+                            metavar="QUANTILE",
+                            help="quantile of particles to remove",
+                            type=int,
+                            default=0.06
+    )
+    clean3_arg.add_argument(
+                            "-d", "--distance",
+                            dest="distance",
+                            metavar="DISTANCE",
+                            help="max distance (bp) from a contact leg to a 3D genome particle",
+                            type=int,
+                            default=500_000
+    )
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
