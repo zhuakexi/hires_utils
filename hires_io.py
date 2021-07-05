@@ -2,6 +2,7 @@ import time
 import sys
 import gzip
 import os
+import sys
 import pandas as pd
 from functools import partial
 
@@ -18,7 +19,7 @@ def converter_template(c_in:str,ref_dict:pd.DataFrame):
     # a reat_table converter function
     #print(ref_dict)
     return ref_dict[c_in]
-def fill_func_ref(template_func:callable, ref_file:str="name_alias.csv", index_col:str="alias")->callable:
+def fill_func_ref(template_func:callable, ref_file:str, index_col:str)->callable:
     # read in ref_file for template_fucn, generate new func
     # hope will boost new func's speed
     
@@ -69,9 +70,13 @@ def parse_gtf(filename:str) -> pd.DataFrame:
 def parse_3dg(filename:str)->pd.DataFrame:
     # read in hickit 3dg file(or the .xyz file)
     # norm chr name alias
+
+    ## get reference file in package
+    relative_ref = "reference/chrom_alias.csv"
+    top_dir = os.path.dirname(sys.argv[0])
     norm_chr = fill_func_ref(
                     converter_template,
-                    "name_alias.csv",
+                    os.path.join(top_dir, relative_ref),
                     "alias")
     s = pd.read_table(filename, 
                       comment="#",header=None,
