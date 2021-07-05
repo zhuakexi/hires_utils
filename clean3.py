@@ -56,9 +56,20 @@ def cli(args):
     write_3dg(good_structure, out_filename)
     return 0
 def clean3(s_name, con_name, clean_quantile, max_clean_distance):
+    # clean poorly supported particles
+    # compatible with hickit
+    # rescale x,y,z positions first
+
     # load data
+    
+    ## rescale 3dg
     s = parse_3dg(s_name)
+    backbone_unit = s.attrs["backbone_unit"]
+    norm_factor = 1.0/backbone_unit
+    s[["x","y","z"]] = s[["x","y","z"]] * norm_factor
+    ## read pairs
     pairs = parse_pairs(con_name)
+    
     # get legs from contacts
     legs = get_legs(pairs)
     # count
