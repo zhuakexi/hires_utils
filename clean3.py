@@ -58,7 +58,7 @@ def cli(args):
 def clean3(s_name, con_name, clean_quantile, max_clean_distance):
     # load data
     s = parse_3dg(s_name)
-    pairs = parse_3dg(con_name)
+    pairs = parse_pairs(con_name)
     # get legs from contacts
     legs = get_legs(pairs)
     # count
