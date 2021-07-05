@@ -48,12 +48,35 @@ def cli(args):
     structure, pairs, out_filename, clean_quantile, max_clean_distance = \
         args.filename, args.ref_filename, args.output, args.quantile, args.distance
     good_structure = clean3(
-        s = structure,
-        pairs = pairs,
+        s_name = structure,
+        con_name = pairs,
         clean_quantile = clean_quantile,
         max_clean_distance = max_clean_distance 
     )
     write_3dg(good_structure, out_filename)
     return 0
-def clean3(s, pairs, clean_quantile, max_clean_distance):
-    pairs
+def clean3(s_name, con_name, clean_quantile, max_clean_distance):
+    # load data
+    s = parse_3dg(s_name)
+    pairs = parse_3dg(con_name)
+    # get legs from contacts
+    legs = get_legs(pairs)
+    # count
+    count_frames = []
+    for name, group in s.groupby("chr"):
+        count_frames.append(
+            particle_evidence(
+                group,
+                legs,
+                name,
+                max_clean_distance
+            )
+        )
+    s_contact_count = pd.concat(count_frames, axis=0)
+    # get quantile
+    gate_contact_num = s_contact_count.quantile(clean_quantile)
+    # get good
+    good_index = s_contact_count[s_contact_count > gate_contact_num].index
+    good_3dg = s.reindex(good_index)
+    return good_3dg
+    
