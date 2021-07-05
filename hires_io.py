@@ -3,12 +3,31 @@ import sys
 import gzip
 import os
 import pandas as pd
+from functools import partial
 
 
 '''
 work with local pairs file generated from hickit
 has 27 headline start with "#"
 '''
+
+# utils
+
+## norm name
+def converter_template(c_in:str,ref_dict:pd.DataFrame):
+    # a reat_table converter function
+    #print(ref_dict)
+    return ref_dict[c_in]
+def fill_func_ref(template_func:callable, ref_file:str="name_alias.csv", index_col:str="alias")->callable:
+    # read in ref_file for template_fucn, generate new func
+    # hope will boost new func's speed
+    
+    ## read in ref_file, get ref_dict in memory
+    ref_df = pd.read_csv(ref_file, index_col=index_col)
+    ref_dict = ref_df.iloc[:,0].to_dict()
+    working_func = partial(template_func, ref_dict=ref_dict)
+    return working_func
+## get sample name
 def divide_name(filename):
     #home-made os.path.splitext, for it can't handle "name.a.b.c" properly
     basename = os.path.basename(filename)
@@ -17,6 +36,9 @@ def divide_name(filename):
         return parts[0], ""
     else:
         return parts[0], "."+".".join(parts[1:]) 
+
+# parsers
+
 def parse_pairs(filename:str)->"Cell":
     '''
     read from 4DN's standard .pairs format
@@ -46,11 +68,24 @@ def parse_gtf(filename:str) -> pd.DataFrame:
     return gencode
 def parse_3dg(filename:str)->pd.DataFrame:
     # read in hickit 3dg file(or the .xyz file)
+    # norm chr name alias
+    norm_chr = fill_func_ref(
+                    converter_template,
+                    "name_alias.csv",
+                    "alias")
     s = pd.read_table(filename, 
                       comment="#",header=None,
-                     index_col=[0,1])
+                     index_col=[0,1],
+                     converters={0:norm_chr})
     s.columns = "x y z".split()
+    s.index.names = ["chr","pos"]
     return s
+
+# writers
+
+def write_3dg(pairs:pd.DataFrame, outname:str):
+    pairs.to_csv(outname, sep="\t",header=None)
+    return 0
 def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     write dataframe to tab delimited zipped file
