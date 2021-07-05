@@ -7,6 +7,7 @@ import pairsa
 import sep_clean
 import chrom_rmsd
 import clean3
+import mmcif
 
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
@@ -146,6 +147,28 @@ def cli():
                             help="max distance (bp) from a contact leg to a 3D genome particle",
                             type=int,
                             default=500_000
+    )
+#--------- mmcif subcommand ------
+    mmcif_arg = subcommands.add_parser(
+                            "mmcif",
+                            help="transform 3dg/xyz file to mmcif"
+    )
+    mmcif_arg.set_defaults(handle=mmcif.cli)
+    mmcif_arg.add_argument(
+                            "-i", "--input",
+                            dest="input_file",
+                            metavar="INPUT",
+                            help="input xyz/3dg file",
+                            type=str,
+                            required=True
+    )
+    mmcif_arg.add_argument(
+                            "-o", "--output",
+                            dest="output_file",
+                            metavar="OUTPUT",
+                            help="name of the output mmcif file",
+                            type=str,
+                            required=True
     )
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
