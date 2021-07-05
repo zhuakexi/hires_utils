@@ -71,19 +71,31 @@ def parse_3dg(filename:str)->pd.DataFrame:
     # read in hickit 3dg file(or the .xyz file)
     # norm chr name alias
 
-    ## get reference file in package
+    ## get alias file in package
     relative_ref = "reference/chrom_alias.csv"
     top_dir = os.path.dirname(sys.argv[0])
     norm_chr = fill_func_ref(
                     converter_template,
                     os.path.join(top_dir, relative_ref),
                     "alias")
+    ## read comments
+    with open(filename) as f:
+        comments = []
+        for line in f.readlines():
+            if line[0] != "#":
+                break
+            comments.append(line)
+    ## read real positions
     s = pd.read_table(filename, 
                       comment="#",header=None,
                      index_col=[0,1],
                      converters={0:norm_chr})
     s.columns = "x y z".split()
     s.index.names = ["chr","pos"]
+    ## assume last comment is backbone_unit
+    s.attrs["comments"] = comments
+    backbone_unit = float(comments[-1].split(":")[1].strip())
+    s.attrs["backbone_unit"] = backbone_unit
     return s
 
 # writers
