@@ -93,9 +93,10 @@ def parse_3dg(filename:str)->pd.DataFrame:
     s.columns = "x y z".split()
     s.index.names = ["chr","pos"]
     ## assume last comment is backbone_unit
-    s.attrs["comments"] = comments
-    backbone_unit = float(comments[-1].split(":")[1].strip())
-    s.attrs["backbone_unit"] = backbone_unit
+    if len(comments) > 0:
+        s.attrs["comments"] = comments
+        backbone_unit = float(comments[-1].split(":")[1].strip())
+        s.attrs["backbone_unit"] = backbone_unit    
     return s
 
 # writers
