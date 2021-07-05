@@ -1,6 +1,6 @@
 # useful scripts to generate ref files
 
-def gen_chr_alias(file_name:str="name_alias.csv"):
+def gen_chr_alias(file_name:str="reference/name_alias.csv"):
     # alias for dip/hap chromosomes
     
     ## generate name list automatically
