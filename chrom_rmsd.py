@@ -69,7 +69,9 @@ def chrom_rmsd(filenames, result_log):
     good = list(pick_good(rmsds))
     if len(good) < 3:
         final_RMSD = RMS(
-                        list(rmsds.values())
+                        np.array(
+                            list(rmsds.values())
+                            )
                         )
     else:
         good_rmsds = np.array(list(
@@ -81,8 +83,14 @@ def chrom_rmsd(filenames, result_log):
 
     # output
     good_files = list(name_mapping[good].values)
+    # a good file means have at least one similar structure
+    # somtime num of good_files > 3, but in different clusters
+    # the final rmsd may > 2.0 meanwhile
     with open(result_log, "wt") as f:
         f.write("#" + str(final_RMSD) + "\n")
+        for pair in rmsds:
+            f.write("#" + str(pair) + str(rmsds[pair]) + "\n")
         f.writelines("\n".join(good_files))
+        f.write("\n")
 
     
