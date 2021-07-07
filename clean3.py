@@ -39,7 +39,12 @@ def particle_evidence(chrom_structure:pd.DataFrame, legs:pd.DataFrame, chrom:str
     except KeyError:
         # whole chromosome loss
         point_counts = np.zeros_like(
-            chrom_structure.index.values) 
+            chrom_structure.index.values
+            )
+        return  pd.Series(
+            index = chrom_structure.index,
+            data = point_counts
+            )
     point_counts = point_near_count(
         chrom_structure.index.get_level_values("pos"),
         legs.loc[chrom, "pos"],
@@ -47,7 +52,8 @@ def particle_evidence(chrom_structure:pd.DataFrame, legs:pd.DataFrame, chrom:str
     )
     return pd.Series(
         index = chrom_structure.index,
-        data = point_counts)
+        data = point_counts
+        )
 
 # command entry point
 def cli(args):
