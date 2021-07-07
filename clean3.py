@@ -34,6 +34,12 @@ def particle_evidence(chrom_structure:pd.DataFrame, legs:pd.DataFrame, chrom:str
     # can't be used in groupby.transform
     ## output:
     ##     DataFrame same length/index of input chrom_structure
+    try:
+        chrom_legs = legs.loc[chrom, "pos"]
+    except KeyError:
+        # whole chromosome loss
+        point_counts = np.zeros_like(
+            chrom_structure.index.values) 
     point_counts = point_near_count(
         chrom_structure.index.get_level_values("pos"),
         legs.loc[chrom, "pos"],
