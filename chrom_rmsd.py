@@ -5,7 +5,7 @@ import rmsd
 import os
 from itertools import combinations
 
-from hires_io import parse_3dg
+from .hires_io import parse_3dg
 
 def flip_rmsd(struct_a:np.ndarray, struct_b:np.ndarray)->np.float16:
     # calculate median deviation of 2 xyz array
