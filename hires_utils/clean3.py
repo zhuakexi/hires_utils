@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from hires_io import parse_pairs, parse_3dg, write_3dg
+from .hires_io import parse_pairs, parse_3dg, write_3dg
 
 def get_legs(pairs:pd.DataFrame)->pd.DataFrame:
     # get all legs of contacts

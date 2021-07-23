@@ -7,7 +7,7 @@ from functools import partial
 import pandas as pd
 import numpy as np
 
-from hires_io import parse_pairs, write_pairs
+from .hires_io import parse_pairs, write_pairs
 
 def L_half(contact1, contact2):
     '''

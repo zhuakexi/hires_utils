@@ -6,7 +6,7 @@ from functools import partial
 import pandas as pd
 
 
-from hires_io import parse_pairs, parse_gtf, write_pairs
+from .hires_io import parse_pairs, parse_gtf, write_pairs
 
 def cli(args)->int:
     filename, gtf_file, out_name, thread = \

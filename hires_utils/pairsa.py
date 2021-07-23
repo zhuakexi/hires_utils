@@ -1,7 +1,7 @@
 import sys
 import gzip
-from classes import Cell, Data
-from hires_io import parse_pairs
+from .classes import Cell, Data
+from .hires_io import parse_pairs
 def write_data(cell:Cell, data_type:str, out_name:str):
     #now use data
     '''

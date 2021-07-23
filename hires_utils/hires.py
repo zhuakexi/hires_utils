@@ -1,13 +1,13 @@
 import argparse
-import clean_leg
-import clean_splicing
-import clean_isolated
-#import script
-import pairsa
-import sep_clean
-import chrom_rmsd
-import clean3
-import mmcif
+from . import clean_leg
+from . import clean_splicing
+from . import clean_isolated
+from . import pairsa
+from . import sep_clean
+from . import chrom_rmsd
+from . import clean3
+from . import mmcif
+from . import clean_leg
 
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")

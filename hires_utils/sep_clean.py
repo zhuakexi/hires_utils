@@ -1,7 +1,7 @@
 import pandas as pd
 
-from clean_isolated import clean_isolated
-from hires_io import parse_pairs, write_pairs
+from .clean_isolated import clean_isolated
+from .hires_io import parse_pairs, write_pairs
 def cli(args):
     file_name, out_name1, out_name2, num_thread, up_dense, up_distance = \
         args.filename[0], args.output_file1, args.output_file2, int(args.num_thread), int(args.dense), int(args.distance)
