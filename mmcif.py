@@ -1,36 +1,107 @@
 # transform 3dg/xyz to mmcif
-# using gemmi module
-import gemmi
+# @Date 210723
+
 import pandas as pd
 
 def cli(args):
-    input_file, output_file = \
-        args.input_file, args.output_file
-    threedg_to_cif(input_file, output_file)
-def threedg_to_cif(in_file:str, out_file:str):
-    # read hickit 3dg file, write mmCIF file
-    positions = pd.read_table(in_file,header=None,names="chr pos x y z".split()) # read in
+    input_file, output_file, factorBpath, maxGap= \
+        args.input_file, args.output_file, args.factorBpath, args.maxGap
+    threedg_to_cif(input_file, output_file, factorBpath, maxGap)
+
+class Bin:
+    def __init__(self,id:int,chromosome:str,position:int,x_coord:float,y_coord:float,z_coord:float,factorB:float=None):
+        self.id = id
+        self.chromosome = chromosome
+        self.position = position
+        self.nextBin = None
+        self.previousBin = None
+        self.x_coord = x_coord
+        self.y_coord = y_coord
+        self.z_coord = z_coord
+        self.factorB = factorB
+   
+    def outputAtomLine(self,atomNum:int):
+        """
+        """
+        return "\t".join(["HETATM",".",str(atomNum),self.chromosome,"003",
+                          "1",str(self.position),str(self.x_coord),str(self.y_coord),str(self.z_coord),
+                          str(self.factorB if self.factorB else "."),self.chromosome])
+    def outputBondLine(self,bondNum:int,maxGap:int):
+        """
+        return bond of this bin and it's next when they are connected
+        """
+        if (self.chromosome == self.nextBin.chromosome and abs(self.nextBin.position-self.position) <= maxGap):
+            return "\t".join([str(bondNum),"covale",self.chromosome,"003",
+                          "1",str(self.position),self.nextBin.chromosome,"003",
+                          "1",str(self.nextBin.position)])
+        else: return None
+        
+def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int=1000000):
+    """
+    funtion as its name
+    """
+    positions = pd.read_table(tdgPath,header=None,names="chr pos x y z".split()) # read in
+    if(factorBpath!=None):
+        factorB = pd.read_table(factorBpath,header=None,names="chrom pos factorB".split())
+        positions = pd.merge(pd.read_table(tdgPath,header=None,names="chr pos x y z".split()).assign(chrom=positions.chr.replace('.at','',regex=True)),factorB,how="left")
     grouped = positions.groupby("chr") # split chromosomes
     
-    model = gemmi.Model("Nuclear")
-    for name, group in grouped:
-        name = name.replace("(","_")
-        name = name.replace(")","") # brackets not allowed in names
-        chain = gemmi.Chain(name)
-        for index, series in group.iterrows():
+    binList = []
+    binNum = 0
+    for chr_name, coord_per_chrom in grouped:
+        for index, series in coord_per_chrom.iterrows():
             # create atom for each bin
-            atom = gemmi.Atom()
-            pos = gemmi.Position(series["x"],series["y"],series["z"])
-            atom.pos = pos
-            atom.occ = 1
-            # create residue for each atom
-            residue = gemmi.Residue()
-            residue.name = series["chr"] + "_" + str(series["pos"])
-            residue.add_atom(atom,0)
-            # add residue to chain
-            chain.add_residue(residue,index)
-        model.add_chain(chain)
-    structure = gemmi.Structure()
-    structure.name = in_file
-    structure.add_model(model)
-    structure.make_mmcif_document().write_file(out_file)
+            if (factorBpath):
+                currentBin = Bin(index,chr_name,series['pos'],series["x"],series["y"],series["z"],series["factorB"])
+            else : currentBin = Bin(index,chr_name,series['pos'],series["x"],series["y"],series["z"])
+            if(binNum !=0):
+                binList[-1].nextBin = currentBin
+            binNum += 1
+            # if b factor is specificed.
+            binList.append(currentBin)
+    binList[-1].nextBin = binList[1]
+    
+    with open(outputCifPath,"w") as output_cif:
+        output_cif.write("data_"+output_cif.name.replace(".cif","")+"\n")
+        output_cif.write("#\n")
+        output_cif.write("#\n")
+        #write all connnection
+        output_cif.write("""loop_\n_struct_conn.id
+_struct_conn.conn_type_id
+_struct_conn.ptnr1_label_asym_id
+_struct_conn.ptnr1_label_comp_id
+_struct_conn.ptnr1_label_seq_id
+_struct_conn.ptnr1_label_atom_id
+_struct_conn.ptnr2_label_asym_id
+_struct_conn.ptnr2_label_comp_id
+_struct_conn.ptnr2_label_seq_id
+_struct_conn.ptnr2_label_atom_id
+""")
+        bondIndex = 1
+        for bin in binList:
+            #print(bondIndex)
+            temp = bin.outputBondLine(bondIndex,maxGap)
+            if temp:
+                output_cif.write(temp + "\n")
+                bondIndex += 1
+
+        #write all atoms
+        output_cif.write("""##
+loop_
+_atom_site.group_PDB
+_atom_site.type_symbol
+_atom_site.id
+_atom_site.label_asym_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.label_atom_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.B_iso_or_equiv
+_atom_site.auth_asym_id
+""")
+        atomIndex = 1
+        for bin in binList:
+            output_cif.write(bin.outputAtomLine(atomIndex)+"\n")
+            atomIndex += 1

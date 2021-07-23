@@ -170,6 +170,20 @@ def cli():
                             type=str,
                             required=True
     )
+    mmcif_arg.add_argument(
+                            "-b", "--factorB",
+                            dest="factorBpath",
+                            help="factorB for color your mmcif file",
+                            type=str,
+                            default=None,
+    )
+    mmcif_arg.add_argument(
+                            "-g", "--maxGap",
+                            dest="maxGap",
+                            help="max gap for not to have a bond between tow atoms",
+                            type=int,
+                            default=1000000,
+    )
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
