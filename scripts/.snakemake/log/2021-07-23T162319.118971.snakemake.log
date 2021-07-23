@@ -1,0 +1,96 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	7	generateCpG
+	8
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.50000.txt
+    jobid: 3
+    wildcards: resolution=50000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.200000.txt
+    jobid: 5
+    wildcards: resolution=200000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.20000.txt
+    jobid: 2
+    wildcards: resolution=20000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.1000000.txt
+    jobid: 7
+    wildcards: resolution=1000000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.100000.txt
+    jobid: 4
+    wildcards: resolution=100000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.10000.txt
+    jobid: 1
+    wildcards: resolution=10000
+
+
+[Fri Jul 23 16:23:19 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.500000.txt
+    jobid: 6
+    wildcards: resolution=500000
+
+[Fri Jul 23 16:24:23 2021]
+Finished job 3.
+1 of 8 steps (12%) done
+[Fri Jul 23 16:24:23 2021]
+Finished job 7.
+2 of 8 steps (25%) done
+[Fri Jul 23 16:24:24 2021]
+Finished job 6.
+3 of 8 steps (38%) done
+[Fri Jul 23 16:24:24 2021]
+Finished job 4.
+4 of 8 steps (50%) done
+[Fri Jul 23 16:24:24 2021]
+Finished job 2.
+5 of 8 steps (62%) done
+[Fri Jul 23 16:24:24 2021]
+Finished job 1.
+6 of 8 steps (75%) done
+[Fri Jul 23 16:24:25 2021]
+Finished job 5.
+7 of 8 steps (88%) done
+
+[Fri Jul 23 16:24:25 2021]
+localrule all:
+    input: mm10.CpG.10000.txt, mm10.CpG.20000.txt, mm10.CpG.50000.txt, mm10.CpG.100000.txt, mm10.CpG.200000.txt, mm10.CpG.500000.txt, mm10.CpG.1000000.txt
+    jobid: 0
+
+[Fri Jul 23 16:24:25 2021]
+Finished job 0.
+8 of 8 steps (100%) done
+Complete log: /share/home/zliu/test/202107/structure/hires-utils/scripts/.snakemake/log/2021-07-23T162319.118971.snakemake.log

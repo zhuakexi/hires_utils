@@ -1,0 +1,151 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 10
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	7	generateCpG
+	8
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.20000.txt
+    jobid: 2
+    wildcards: resolution=20000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.200000.txt
+    jobid: 5
+    wildcards: resolution=200000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.50000.txt
+    jobid: 3
+    wildcards: resolution=50000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.1000000.txt
+    jobid: 7
+    wildcards: resolution=1000000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.10000.txt
+    jobid: 1
+    wildcards: resolution=10000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.100000.txt
+    jobid: 4
+    wildcards: resolution=100000
+
+
+[Fri Jul 23 16:16:36 2021]
+rule generateCpG:
+    input: /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa, /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai
+    output: mm10.CpG.500000.txt
+    jobid: 6
+    wildcards: resolution=500000
+
+Terminating processes on user request, this might take some time.
+[Fri Jul 23 16:16:41 2021]
+[Fri Jul 23 16:16:41 2021]
+Error in rule generateCpG:
+Error in rule generateCpG:
+[Fri Jul 23 16:16:41 2021]
+[Fri Jul 23 16:16:41 2021]
+[Fri Jul 23 16:16:41 2021]
+[Fri Jul 23 16:16:41 2021]
+    jobid: 1
+    jobid: 5
+[Fri Jul 23 16:16:41 2021]
+Error in rule generateCpG:
+Error in rule generateCpG:
+Error in rule generateCpG:
+Error in rule generateCpG:
+    output: mm10.CpG.10000.txt
+    output: mm10.CpG.200000.txt
+Error in rule generateCpG:
+    jobid: 4
+    jobid: 2
+    jobid: 3
+    jobid: 7
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 10000 | bedtools shift -i stdin -s `expr 10000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 200000 | bedtools shift -i stdin -s `expr 200000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    jobid: 6
+    output: mm10.CpG.100000.txt
+    output: mm10.CpG.20000.txt
+    output: mm10.CpG.50000.txt
+    output: mm10.CpG.1000000.txt
+
+
+    output: mm10.CpG.500000.txt
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 100000 | bedtools shift -i stdin -s `expr 100000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 20000 | bedtools shift -i stdin -s `expr 20000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 50000 | bedtools shift -i stdin -s `expr 50000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 1000000 | bedtools shift -i stdin -s `expr 1000000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    shell:
+        
+        set +u;source activate;conda activate py3;set -u
+        bedtools getfasta -fi /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa -bed <( bedtools makewindows -g <( cat /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai | cut -f1,2 ) -w 500000 | bedtools shift -i stdin -s `expr 500000 / 2` -g /share/Data/public/ref_genome/mouse_ref/M23/raw_data/genome.fa.fai ) -bedOut |awk '{print $1"	"$2"	"$3"	"gsub("CG","xx",$4)/length($4)}'| awk '{if ($4!=0) print $0}'
+        set +u;conda deactivate; set -u
+    
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+
+
+
+
+Complete log: /share/home/zliu/test/202107/structure/hires-utils/scripts/.snakemake/log/2021-07-23T161636.520027.snakemake.log
