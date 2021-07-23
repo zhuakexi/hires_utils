@@ -5,6 +5,9 @@ import os
 import sys
 import pandas as pd
 from functools import partial
+from pkgutil import get_data
+from io import StringIO
+from . import reference
 
 
 '''
@@ -72,11 +75,12 @@ def parse_3dg(filename:str)->pd.DataFrame:
     # norm chr name alias
 
     ## get alias file in package
-    relative_ref = "reference/chrom_alias.csv"
-    top_dir = os.path.dirname(sys.argv[0])
+    ## reference is a "data module" with its own __init__.py
+    dat = get_data(reference.__name__, "chrom_alias.csv")
+    dat_f = StringIO(dat.decode())
     norm_chr = fill_func_ref(
                     converter_template,
-                    os.path.join(top_dir, relative_ref),
+                    dat_f,
                     "alias")
     ## read comments
     with open(filename) as f:
