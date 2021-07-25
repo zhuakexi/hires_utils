@@ -63,6 +63,6 @@ def clean_leg(pairs, num_thread:int, max_distance:int, max_count:int):
     result = pd.concat(res, axis=0)
     print("clean_leg: remove %d contacts in %s\n"%(len(pairs)-len(result), pairs.attrs["name"]))
     sys.stderr.write("clean_leg: finished in %.2fs\n"%(time.time()-t0))
-    return pairs
+    return result
 
     
