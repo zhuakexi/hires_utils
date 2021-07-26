@@ -61,6 +61,9 @@ def clean_leg(pairs, num_thread:int, max_distance:int, max_count:int):
     with futures.ProcessPoolExecutor(num_thread) as executor:
         res = executor.map(working_func, input_data)
     result = pd.concat(res, axis=0)
+    # adding comment back cause pd doesn't ensure attr intact
+    # hires_io will take care of headers of attrs
+    result.attrs.update(pairs.attrs)
     print("clean_leg: remove %d contacts in %s\n"%(len(pairs)-len(result), pairs.attrs["name"]))
     sys.stderr.write("clean_leg: finished in %.2fs\n"%(time.time()-t0))
     return result
