@@ -1,3 +1,4 @@
+# regenerate sample_name
 import sys
 import numpy as np
 import pandas as pd
@@ -5,7 +6,7 @@ import rmsd
 import os
 from itertools import combinations
 
-from .hires_io import parse_3dg
+from .hires_io import parse_3dg, divide_name, gen_record
 
 def flip_rmsd(struct_a:np.ndarray, struct_b:np.ndarray)->np.float16:
     # calculate median deviation of 2 xyz array
@@ -14,23 +15,24 @@ def flip_rmsd(struct_a:np.ndarray, struct_b:np.ndarray)->np.float16:
     b = rmsd.kabsch_rmsd(struct_a, - 1.0 * struct_b, translate=True)
     return a if a < b else b
 def pick_good(rmsds:dict, threshold:float=2) -> set:
-    #pick out structure dv bigger than THRESHOLD
+    # pick 3 structures from 3 smallest rmsd pairs
     # input:
     #   {[struct pair] : rmsd of the pair}
     # output:
-    #    name of good_structures
-    ##get all structure name(represent by int index)
-    problematic = set()
-    for pair in rmsds.keys():
-        problematic = problematic | set(pair)
-        good = problematic | set(pair)
-    ##pick bad structure(clustering here may be better)
-    for pair in rmsds:
-        if rmsds[pair] < threshold:
-            problematic -= set(pair)
-    ##remaining is the good
-    good -= problematic
-    return good
+    #   (final rmsd, name of good_structures)
+
+    # calc smallest 3 mean rmsd
+    s_rmsds = sorted(zip(rmsds.values(), rmsds.keys()))
+    # for number of good struct >= 3, pick 3 struct
+    # for number of good struct < 3, return None
+    if s_rmsds[2][0] > threshold:
+        good_struct= None
+    else:
+        pairs = [rec[1] for rec in s_rmsds[0:3]]
+        good_struct = set([i for pair in pairs for i in pair])
+    # using smallest 3 mean as final rmsd anyway
+    final_RMSD = np.mean([rec[0] for rec in s_rmsds[0:3]])
+    return final_RMSD, good_struct   
 def RMS(data:list):
     return np.sqrt((data ** 2).mean())
 def combine_binary(samples:list, data:dict, func)->dict:
@@ -47,9 +49,38 @@ def combine_binary(samples:list, data:dict, func)->dict:
         res[pair] = func(data[pair[0]], data[pair[1]])
     return res
 def cli(args):
-    filenames, result_log = args.filenames, args.result_log 
-    chrom_rmsd(filenames, result_log)
-def chrom_rmsd(filenames, result_log):
+    filenames, result_log, record_dir = \
+        args.filenames, args.result_log, args.record_dir
+    final_RMSD, per_pair_rmsds, good_files = chrom_rmsd(filenames)
+    # get base sample name without any exts
+    # only used in pipeline recording
+    sample_name, _ = divide_name(filenames[0])
+    # [pipeline] record for downstream analysis
+    if record_dir != None:
+        record = {sample_name:{}}
+        record[sample_name].update({"rmsd":final_RMSD})
+        # clean up dict key
+        per_pair_rmsds = {
+            "_".join(pair)+"rmsd":per_pair_rmsds[pair]\
+            for pair in per_pair_rmsds
+        }
+        record[sample_name].update(per_pair_rmsds)
+        record[sample_name].update(good_files)
+        gen_record(record, record_dir)
+    # write log for user
+    with open(result_log, "wt") as f:
+        f.write("#" + str(final_RMSD) + "\n")
+        for pair in per_pair_rmsds:
+            f.write("#" + str(pair) + str(per_pair_rmsds[pair]) + "\n")
+        f.writelines("\n".join(good_files.values()))
+        f.write("\n")
+def chrom_rmsd(filenames):
+    # Input:
+    #   filenames
+    # Output:
+    #   float : smallest-3-mean-r.m.s.deviation of structs
+    #   dict : per-pair-r.m.s.dev of sturcts
+    #   dict : (if exist) 3 good struct / blank dict
     # load 3dg file
     
     ## inner names/index of different structures
@@ -66,31 +97,14 @@ def chrom_rmsd(filenames, result_log):
     rmsds = combine_binary(names, cells, flip_rmsd)
     # pick good structure and
     # calc filan RMSD between good structures
-    good = list(pick_good(rmsds))
-    if len(good) < 3:
-        final_RMSD = RMS(
-                        np.array(
-                            list(rmsds.values())
-                            )
-                        )
+    final_RMSD, good_struct = pick_good(rmsds)
+    if good_struct != None:
+        good_files = [os.path.abspath(file) for file in name_mapping[good_struct].values]
+        keys = ["g_struct1", "g_struct2", "g_struct3"]
+        good_files_d = dict(zip(keys,good_files))
     else:
-        good_rmsds = np.array(list(
-                combine_binary(good, 
-                        cells, 
-                        flip_rmsd).values()
-                            ))
-        final_RMSD = RMS(good_rmsds)
+        good_files_d = {}
+    return final_RMSD, rmsds, good_files_d
 
-    # output
-    good_files = list(name_mapping[good].values)
-    # a good file means have at least one similar structure
-    # somtime num of good_files > 3, but in different clusters
-    # the final rmsd may > 2.0 meanwhile
-    with open(result_log, "wt") as f:
-        f.write("#" + str(final_RMSD) + "\n")
-        for pair in rmsds:
-            f.write("#" + str(pair) + str(rmsds[pair]) + "\n")
-        f.writelines("\n".join(good_files))
-        f.write("\n")
 
     

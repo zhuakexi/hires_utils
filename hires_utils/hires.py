@@ -102,6 +102,14 @@ def cli():
                             type=str,
                             required=True
     )
+    rmsd_arg.add_argument(
+                            "-rd", "--record",
+                            dest="record_dir",
+                            metavar="DIR",
+                            help="directory to store key-value json for stat",
+                            type=str,
+                            default=None
+    )
 #--------- clean3 subcommand ------
     clean3_arg = subcommands.add_parser(
                             "clean3",
