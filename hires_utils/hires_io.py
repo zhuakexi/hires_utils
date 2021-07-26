@@ -3,6 +3,8 @@ import sys
 import gzip
 import os
 import sys
+import uuid
+import json
 import pandas as pd
 from functools import partial
 from pkgutil import get_data
@@ -121,3 +123,9 @@ def write_pairs(pairs:pd.DataFrame, out_name:str):
         pairs.attrs["comments"].append("#columns:" + "\t".join(pairs.columns) + "\n")
         f.write("".join(pairs.attrs["comments"]))
         pairs.to_csv(f, sep="\t", header=False, index=False, mode="a")
+
+# [pipeline] json metrics recorder
+def gen_record(record:dict, record_dir):
+    uuid_str = uuid.uuid4().hex
+    with open(os.path.join(record_dir, uuid_str+".json"), "w") as f:
+        json.dump(record, f)
