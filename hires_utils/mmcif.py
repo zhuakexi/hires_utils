@@ -59,7 +59,7 @@ def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int
             binNum += 1
             # if b factor is specificed.
             binList.append(currentBin)
-    binList[-1].nextBin = binList[1]
+    binList[-1].nextBin = binList[0]
     
     with open(outputCifPath,"w") as output_cif:
         output_cif.write("data_"+output_cif.name.replace(".cif","")+"\n")

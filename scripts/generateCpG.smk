@@ -13,7 +13,7 @@ rule generateCpG:
         cpg = "mm10.CpG.{resolution}.txt"
     shell:"""
         set +u;source activate;conda activate py3;set -u
-        bedtools getfasta -fi {input.genome} -bed <( bedtools makewindows -g <( cat {input.index} | cut -f1,2 ) -w {wildcards.resolution} | bedtools shift -i stdin -s `expr {wildcards.resolution} / 2` -g {input.index} ) -bedOut |awk '{{print $1"\t"$2"\t"$3"\t"gsub("CG|GC","xx",$4)/length($4)}}'| awk '{{if ($4!=0) print $0}}' > {output.cpg}
+        bedtools getfasta -fi {input.genome} -bed <( bedtools makewindows -g <( cat {input.index} | cut -f1,2 ) -w {wildcards.resolution} | bedtools shift -i stdin -s `expr {wildcards.resolution} / 2` -g {input.index} ) -bedOut |awk '{{print $1"\t"$2"\t"$3"\t"gsub("CG","xx",$4)/length($4)}}'| awk '{{if ($4!=0) print $0}}' | awk '{{print $1"\t"($2+$3)/2"\t"$4}}'> {output.cpg}
         set +u;conda deactivate; set -u
     """
 
