@@ -1,6 +1,7 @@
 # transform 3dg/xyz to mmcif
 # @Date 210723
 
+import sys
 import pandas as pd
 
 def cli(args):
@@ -42,7 +43,7 @@ def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int
     """
     positions = pd.read_table(tdgPath,header=None,names="chr pos x y z".split()) # read in
     if(factorBpath!=None):
-        factorB = pd.read_table(factorBpath,header=None,names="chrom pos factorB".split())
+        factorB = pd.read_table(factorBpath,header=None,names="chr pos factorB".split())
         positions = pd.merge(pd.read_table(tdgPath,header=None,names="chr pos x y z".split()).assign(chrom=positions.chr.replace('.at','',regex=True)),factorB,how="left")
     grouped = positions.groupby("chr") # split chromosomes
     
@@ -59,6 +60,7 @@ def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int
             binNum += 1
             # if b factor is specificed.
             binList.append(currentBin)
+    #print(binList)
     binList[-1].nextBin = binList[0]
     
     with open(outputCifPath,"w") as output_cif:
@@ -105,3 +107,7 @@ _atom_site.auth_asym_id
         for bin in binList:
             output_cif.write(bin.outputAtomLine(atomIndex)+"\n")
             atomIndex += 1
+
+
+if __name__ == '__main__':
+    threedg_to_cif(sys.argv[1],sys.argv[2])
