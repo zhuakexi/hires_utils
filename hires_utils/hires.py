@@ -8,6 +8,7 @@ from . import chrom_rmsd
 from . import clean3
 from . import mmcif
 from . import clean_leg
+from . import gcount
 
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
@@ -103,7 +104,7 @@ def cli():
                             required=True
     )
     rmsd_arg.add_argument(
-                            "-rd", "--record",
+                            "-rd", "--record_directory",
                             dest="record_dir",
                             metavar="DIR",
                             help="directory to store key-value json for stat",
@@ -192,6 +193,46 @@ def cli():
                             type=int,
                             default=1000000,
     )
+#--------- gcount subcommand ------
+    gcount_arg = subcommands.add_parser(
+        "gcount",
+        help="count number of records \
+            in sequencing-related files,\
+             eg: fastq, pairs"
+    )
+    gcount_arg.set_defaults(handle=gcount.cli)
+    gcount_arg.add_argument(
+        dest="filename",
+        metavar="INPUT_FILE",
+        help="input filename",
+        nargs=1
+    )
+    gcount_arg.add_argument(
+        "-f","--format",
+        dest="fformat",
+        metavar="FORMAT",
+        help="input file format: \
+            pe_fastq, se_fastq, merged_fastq, pairs",
+        type=str,
+        default="pe_fastq"
+    )
+    gcount_arg.add_argument(
+        "-rd","--record_directory",
+        dest="record_directory",
+        metavar="DIR",
+        type=str,
+        help="record directory to store key:value results",
+        default=None
+    )
+    gcount_arg.add_argument(
+        "-sa","--sample_name",
+        dest="sample_name",
+        metavar="SAMPLE",
+        type=str,
+        help="sample name/ID, used in record",
+        default=None
+    )
+
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
