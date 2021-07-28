@@ -229,7 +229,15 @@ def cli():
         dest="sample_name",
         metavar="SAMPLE",
         type=str,
-        help="sample name/ID, used in record",
+        help="[for pipeline] sample name/ID, used in record",
+        default=None
+    )
+    gcount_arg.add_argument(
+        "-at","--attributes",
+        dest="attributes",
+        metavar="ATTR",
+        type=str,
+        help="[for pipeline] data key, used in record",
         default=None
     )
 

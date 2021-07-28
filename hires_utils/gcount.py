@@ -35,8 +35,8 @@ def count_fastq(filename:str, form:str="p")->int:
     else:
         return -1
 def cli(args):
-    filename, file_format, record_directory, sample_name = \
-        args.filename[0], args.fformat, args.record_directory, args.sample_name
+    filename, file_format, record_directory, sample_name, attr = \
+        args.filename[0], args.fformat, args.record_directory, args.sample_name, args.attributes
     if file_format in ["pe_fastq"]:
         result = count_fastq(filename)
     elif file_format in ["se_fastq","merged_fastq"]:
@@ -50,8 +50,9 @@ def cli(args):
 
     if record_directory != None:
         if sample_name != None:
-            record = {sample_name:result}
+            if attr != None:
+                record = {sample_name:{attr:result}}
         else:
-            record = {filename:result}
+            record = {filename:{"reads":result}}
         gen_record(record, record_directory)
         
