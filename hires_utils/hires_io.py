@@ -127,5 +127,7 @@ def write_pairs(pairs:pd.DataFrame, out_name:str):
 # [pipeline] json metrics recorder
 def gen_record(record:dict, record_dir):
     uuid_str = uuid.uuid4().hex
+    if not os.path.exists(record_dir):
+        os.makedirs(record_dir) 
     with open(os.path.join(record_dir, uuid_str+".json"), "w") as f:
         json.dump(record, f)
