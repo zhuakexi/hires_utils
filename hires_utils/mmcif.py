@@ -41,10 +41,11 @@ def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int
     """
     funtion as its name
     """
-    positions = pd.read_table(tdgPath,header=None,names="chr pos x y z".split()) # read in
+    positions = pd.read_table(tdgPath,header=None,names="chr pos x y z".split()).replace("[()]","",regex=True) # read in
     if(factorBpath!=None):
-        factorB = pd.read_table(factorBpath,header=None,names="chr pos factorB".split())
-        positions = pd.merge(pd.read_table(tdgPath,header=None,names="chr pos x y z".split()).assign(chrom=positions.chr.replace('.at','',regex=True)),factorB,how="left")
+        factorB = pd.read_table(factorBpath,header=None,names="chrom pos factorB".split())
+        positions = pd.merge(positions.assign(chrom=positions.chr.replace('.at','',regex=True)),factorB,how="left")
+        print(positions)
     grouped = positions.groupby("chr") # split chromosomes
     
     binList = []
