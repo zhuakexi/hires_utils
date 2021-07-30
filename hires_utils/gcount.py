@@ -1,6 +1,6 @@
 import gzip
 from subprocess import check_output
-from .hires_io import gen_record
+from .hires_io import gen_record, divide_name
 
 
 def zcount(filename:str,target:str)->int:
@@ -49,10 +49,11 @@ def cli(args):
     print(filename + ":" + str(result))
 
     if record_directory != None:
+        infer_sample_name, _ = divide_name(filenames[0])
         if sample_name != None:
             if attr != None:
                 record = {sample_name:{attr:result}}
         else:
-            record = {filename:{"reads":result}}
+            record = {infer_sample_name:{"reads":result}}
         gen_record(record, record_directory)
         
