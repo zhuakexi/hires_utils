@@ -104,6 +104,20 @@ def parse_3dg(filename:str)->pd.DataFrame:
         backbone_unit = float(comments[-1].split(":")[1].strip())
         s.attrs["backbone_unit"] = backbone_unit    
     return s
+def parse_seg(filename:str) -> tuple:
+    # read in .seg file in dip-c
+    # return comments and list of all segment element
+    comments = []
+    segs = []
+    with gzip.open(filename,"rt") as f:
+        for line in f:
+            if line[0] == "#":
+                comments.append(line)
+            else:
+                for alignment in line.split()[1:]:
+                    # remove read ID
+                    segs.append(alignment)
+    return comments, segs
 
 # writers
 
@@ -131,3 +145,14 @@ def gen_record(record:dict, record_dir):
         os.makedirs(record_dir) 
     with open(os.path.join(record_dir, uuid_str+".json"), "w") as f:
         json.dump(record, f)
+def print_records(dat:dict,f=None):
+    if f == None:
+        for sample in dat:
+            print(sample)
+            for attr in dat[sample]:
+                print(str(attr) + ":" + str(dat[sample][attr]))
+    else:
+        for sample in dat:
+            print(sample,file=f)
+            for attr in dat[sample]:
+                print(str(attr) + ":" + str(dat[sample][attr]),file=f)
