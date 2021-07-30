@@ -9,7 +9,7 @@ from . import clean3
 from . import mmcif
 from . import clean_leg
 from . import gcount
-
+from . import seg_stat
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -240,7 +240,41 @@ def cli():
         help="[for pipeline] data key, used in record",
         default=None
     )
-
+#---------seg_stat subcommand ------
+    seg_stat_arg = subcommands.add_parser(
+        "seg_stat",
+        help="summary .seg file"
+    )
+    seg_stat_arg.set_defaults(handle=seg_stat.cli)
+    seg_stat_arg.add_argument(
+        dest="filename",
+        metavar="INPUT_FILE",
+        help="input filename, dip-c .seg file",
+        nargs = 1
+    )
+    seg_stat_arg.add_argument(
+        "-o", "--output",
+        dest="output",
+        metavar="LOGFILE",
+        help="output file"
+    )
+    seg_stat_arg.add_argument(
+        "-rd","--record_directory",
+        dest="record_directory",
+        metavar="DIR",
+        type=str,
+        help="[for pipeline] record directory to store key:value results",
+        default=None
+    )
+    seg_stat_arg.add_argument(
+        "-sa","--sample_name",
+        dest="sample_name",
+        metavar="SAMPLE",
+        type=str,
+        help="[for pipeline] sample name/ID, used in record",
+        default=None
+    )
+    
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(
                             "clean_isolated",
