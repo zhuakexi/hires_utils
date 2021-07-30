@@ -49,7 +49,7 @@ def cli(args):
     print(filename + ":" + str(result))
 
     if record_directory != None:
-        infer_sample_name, _ = divide_name(filenames[0])
+        infer_sample_name, _ = divide_name(filename)
         if sample_name != None:
             if attr != None:
                 record = {sample_name:{attr:result}}
