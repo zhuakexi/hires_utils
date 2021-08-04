@@ -5,7 +5,7 @@ def cli(args):
         args.filename[0], args.output, args.record_directory, args.sample_name
     hap1_phased, hap2_phased, biasedX_score, hap_score, yp = \
         seg_values(filename)
-    assigned = judge(biasedX_score, hap_score)
+    assigned = judge(hap_score, yp)
     # generate records
     if sample_name == None:
         sample_name,_ = divide_name(filename)
