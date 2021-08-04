@@ -1,13 +1,16 @@
 import gzip
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from .hires_io import gen_record, divide_name
 
 
 def zcount(filename:str,target:str)->int:
     # count zipped file line number
-    output_bytes = check_output([
-        "zgrep","-c",target,
-        filename])
+    try:
+        output_bytes = check_output([
+            "zgrep","-c",target,
+            filename])
+    except CalledProcessError:
+        return 0
     return int(output_bytes.decode("utf-8").strip())
 def count_pairs(filename:str)->int:
     # count number of contacts in 4DN pairs file
