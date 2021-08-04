@@ -51,35 +51,34 @@ def seg_values(filename:str)->tuple:
             b += 1
         else:
             u += 1
+    yp = Y / (a+b+u) # y percent
     hap1_phased = a / (a+b+u)
     hap2_phased = b / (a+b+u)
     biasedX_score = abs(Xa - Xb)/(Xa + Xb)
     hap_score = abs(a - b)/(a + b)
-    return hap1_phased, hap2_phased, biasedX_score, hap_score
-def judge(biasedX_score:float, hap_score:float)->str:
-    # singleX_score [0,1] 0:female 1:male
+    return hap1_phased, hap2_phased, biasedX_score, hap_score, yp
+def judge(biasedX_score:float, hap_score:float, yp:float)->str:
     # hap_score [0,1] 0:dip 1:hap
-    # singleX_score threshold: <0.25 or >0.8
-    # hap_score threshold: <0.2 or >0.9
-    tx1 = 0.25
-    tx2 = 0.8
-    th1 = 0.2
-    th2 = 0.9
-    if hap_score > th2:
-        # haploid
-        if biasedX_score > tx2:
+    # try best to avoid unassigned
+    Tx = 0.75 # 0~0.75 that is, 0.5~0.75 for maternal_X_percent
+    Th = 0.5 # for most either <0.2 or >0.9
+    Ty = 0.0005
+    if hap_score > Th:
+        # haploid, using ypercent
+        if yp < Ty:
             # in hap, biasedX because has X
             return "hapfem"
-        if biasedX_score < tx1:
+        if yp > Ty:
             # in hap, no bias because doesn't have X
             return "hapmal"
-    if hap_score < th1:
-        # diploid
-        if biasedX_score > tx2:
+    if hap_score < Th:
+        # diploid, using both ypercent and biasedX
+        # ypercent is the de facto judger
+        if biasedX_score > Tx or yp > Ty:
             # in dip, biasedX becasue has one X,
             # that is, has Y
             return "dipmal"
-        if biasedX_score < tx1:
+        if biasedX_score < Tx or yp < Ty:
             # in dip, no biasedX because has 2 X
             return "dipfem"
     return "unassigned"
