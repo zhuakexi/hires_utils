@@ -3,7 +3,7 @@ from .hires_io import parse_seg, gen_record, divide_name, print_records
 def cli(args):
     filename, output, record_dir, sample_name = \
         args.filename[0], args.output, args.record_directory, args.sample_name
-    hap1_phased, hap2_phased, biasedX_score, hap_score = \
+    hap1_phased, hap2_phased, biasedX_score, hap_score, yp = \
         seg_values(filename)
     assigned = judge(biasedX_score, hap_score)
     # generate records
@@ -16,6 +16,7 @@ def cli(args):
                 "hap2_phased":hap2_phased,
                 "biasedX_score":biasedX_score,
                 "hap_score":hap_score,
+                "ypercent":yp,
                 "cell_state":assigned
             }
     }
@@ -51,16 +52,23 @@ def seg_values(filename:str)->tuple:
             b += 1
         else:
             u += 1
-    yp = Y / (a+b+u) # y percent
-    hap1_phased = a / (a+b+u)
-    hap2_phased = b / (a+b+u)
-    biasedX_score = abs(Xa - Xb)/(Xa + Xb)
-    hap_score = abs(a - b)/(a + b)
+    try:
+        yp = Y / (a+b+u) # y percent
+        hap1_phased = a / (a+b+u)
+        hap2_phased = b / (a+b+u)
+        biasedX_score = abs(Xa - Xb)/(Xa + Xb)
+        hap_score = abs(a - b)/(a + b)
+    except ZeroDivisionError:
+        # fully capture the Error
+        if a + b == 0:
+            return 0.0, 0.0, -1, 1.0, yp
+        if Xa + Xb == 0:
+            return hap1_phased, hap2_phased, -1, hap_score, yp 
     return hap1_phased, hap2_phased, biasedX_score, hap_score, yp
-def judge(biasedX_score:float, hap_score:float, yp:float)->str:
+def judge(hap_score:float, yp:float)->str:
     # hap_score [0,1] 0:dip 1:hap
     # try best to avoid unassigned
-    Tx = 0.75 # 0~0.75 that is, 0.5~0.75 for maternal_X_percent
+    # Tx = 0.75 # 0~0.75 that is, 0.5~0.75 for maternal_X_percent
     Th = 0.5 # for most either <0.2 or >0.9
     Ty = 0.0005
     if hap_score > Th:
@@ -74,11 +82,11 @@ def judge(biasedX_score:float, hap_score:float, yp:float)->str:
     if hap_score < Th:
         # diploid, using both ypercent and biasedX
         # ypercent is the de facto judger
-        if biasedX_score > Tx or yp > Ty:
+        if yp > Ty:
             # in dip, biasedX becasue has one X,
             # that is, has Y
             return "dipmal"
-        if biasedX_score < Tx or yp < Ty:
+        if yp < Ty:
             # in dip, no biasedX because has 2 X
             return "dipfem"
     return "unassigned"
