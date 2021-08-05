@@ -6,7 +6,7 @@ import rmsd
 import os
 from itertools import combinations
 
-from .hires_io import parse_3dg, divide_name, gen_record
+from .hires_io import parse_3dg, divide_name, gen_record, print_records
 
 def flip_rmsd(struct_a:np.ndarray, struct_b:np.ndarray)->np.float16:
     # calculate median deviation of 2 xyz array
@@ -48,32 +48,44 @@ def combine_binary(samples:list, data:dict, func)->dict:
     for pair in combinations(samples, 2):
         res[pair] = func(data[pair[0]], data[pair[1]])
     return res
+def build_records(sample_name, attr, final_RMSD, per_pair_rmsds, good_files):
+    # [for pipeline]
+    # generate records of chrom_rmsd's result
+    # using a 2-layer dict model
+    # mix attr in
+    # attr is typicaly 3d build binsize
+    keys = [attr + "rmsd"]
+    values = [final_RMSD]
+    for pair in per_pair_rmsds:
+        keys.append(attr+"_".join(pair)+"_rmsd")
+        values.append(per_pair_rmsds[pair])
+    for struct_name in good_files:
+        keys.append(attr + struct_name)
+        values.append(good_files[struct_name])
+    return {sample_name:dict(zip(keys, values))}
 def cli(args):
-    filenames, result_log, record_dir = \
-        args.filenames, args.result_log, args.record_dir
+    filenames, result_log, record_dir, sample_name, attr = \
+        args.filenames, args.result_log, args.record_dir, args.sample_name, args.attr
     final_RMSD, per_pair_rmsds, good_files = chrom_rmsd(filenames)
-    # get base sample name without any exts
-    # only used in pipeline recording
-    sample_name, _ = divide_name(filenames[0])
+    if sample_name == None:
+        # infering sample name
+        sample_name,_ = divide_name(filename)
+    if attr == None:
+        attr = ""
+    records = build_records(
+        sample_name, attr, final_RMSD,
+        per_pair_rmsds, good_files)
+    if result_log == None:
+    # print to stdout
+        print_records(records)
+    else:
+        # print to log file
+        with open(result_log,"wt") as f:
+            print_records(records, f)
     # [pipeline] record for downstream analysis
     if record_dir != None:
-        record = {sample_name:{}}
-        record[sample_name].update({"rmsd":final_RMSD})
-        # clean up dict key
-        per_pair_rmsds = {
-            "_".join(pair)+"rmsd":per_pair_rmsds[pair]\
-            for pair in per_pair_rmsds
-        }
-        record[sample_name].update(per_pair_rmsds)
-        record[sample_name].update(good_files)
-        gen_record(record, record_dir)
-    # write log for user
-    with open(result_log, "wt") as f:
-        f.write("#" + str(final_RMSD) + "\n")
-        for pair in per_pair_rmsds:
-            f.write("#" + str(pair) + str(per_pair_rmsds[pair]) + "\n")
-        f.writelines("\n".join(good_files.values()))
-        f.write("\n")
+        gen_record(records, record_dir)
+
 def chrom_rmsd(filenames):
     # Input:
     #   filenames
