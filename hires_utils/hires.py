@@ -101,7 +101,7 @@ def cli():
                             metavar="RESULT_LOG_FILE",
                             help="a log file to aggregate stat info, useful in workflow",
                             type=str,
-                            required=True
+                            default=None
     )
     rmsd_arg.add_argument(
                             "-rd", "--record_directory",
@@ -110,6 +110,22 @@ def cli():
                             help="directory to store key-value json for stat",
                             type=str,
                             default=None
+    )
+    rmsd_arg.add_argument(
+        "-sa","--sample_name",
+        dest="sample_name",
+        metavar="SAMPLE",
+        type=str,
+        help="[for pipeline] sample name/ID, used in record",
+        default=None
+    )
+    rmsd_arg.add_argument(
+        "-at","--attributes",
+        dest="attr",
+        metavar="ATTR",
+        type=str,
+        help="[for pipeline] data key, usually binsize of 3d particle, used in record",
+        default=None
     )
 #--------- clean3 subcommand ------
     clean3_arg = subcommands.add_parser(
