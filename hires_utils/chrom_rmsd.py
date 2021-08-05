@@ -69,7 +69,7 @@ def cli(args):
     final_RMSD, per_pair_rmsds, good_files = chrom_rmsd(filenames)
     if sample_name == None:
         # infering sample name
-        sample_name,_ = divide_name(filename)
+        sample_name,_ = divide_name(filenames[0])
     if attr == None:
         attr = ""
     records = build_records(
