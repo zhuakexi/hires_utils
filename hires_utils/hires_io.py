@@ -52,6 +52,19 @@ def parse_pairs(filename:str)->"Cell":
     '''
     #comment lines are stored in dataframe.attrs["comment"]
     name_array = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
+    dtype_array = {"readID":"category",
+            "chr1":"category",
+            "pos1":"int",
+            "chr2":"category",
+            "pos2":"int",
+            "strand1":"category",
+            "strand2":"category",
+            "phase0":"category",
+            "phase1":"category",
+            "phase_prob00":"float",
+            "phase_prob01":"float",
+            "phase_prob10":"float",
+            "phase_prob11":"float"}
     #read comment line
     with gzip.open(filename,"rt") as f:
         comments = []
@@ -59,12 +72,22 @@ def parse_pairs(filename:str)->"Cell":
             if line[0] != "#":
                 break
             comments.append(line)
+    #infer number of columns
+    line_length = len(line.strip().split("\t"))
+    #pick used eles from builtin arrays
+    columns = name_array[0:line_length]
+    dtypes = {key:value for key, value in dtype_array.items() if key in columns}
     #read table format data
-    pairs = pd.read_table(filename, header=None, comment="#")
+    pairs = pd.read_table(
+        filename, 
+        header=None, 
+        comment="#",
+        dtype=dtypes,
+        names=columns
+        )
     pairs.attrs["comments"] = comments
-    pairs.attrs["name"], _ = divide_name(filename) # get real sample name
+    pairs.attrs["name"], _ = divide_name(filename) # infer real sample name
     #assign column names
-    pairs.columns = name_array[0:pairs.shape[1]]
     #sys.stderr.write("pairs_parser: %s parsed \n" % filename)
     return pairs
 def parse_gtf(filename:str) -> pd.DataFrame:
