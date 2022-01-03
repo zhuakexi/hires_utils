@@ -45,7 +45,7 @@ def divide_name(filename):
 
 # parsers
 
-def parse_pairs(filename:str)->"Cell":
+def parse_pairs(filename:str)->pd.DataFrame:
     '''
     read from 4DN's standard .pairs format
     compatible with all hickit originated pairs-like format 
@@ -53,14 +53,14 @@ def parse_pairs(filename:str)->"Cell":
     #comment lines are stored in dataframe.attrs["comment"]
     name_array = "readID chr1 pos1 chr2 pos2 strand1 strand2 phase0 phase1 phase_prob00 phase_prob01 phase_prob10 phase_prob11".split()
     dtype_array = {"readID":"category",
-            "chr1":"category",
+            "chr1":"string",
             "pos1":"int",
-            "chr2":"category",
+            "chr2":"string",
             "pos2":"int",
-            "strand1":"category",
-            "strand2":"category",
-            "phase0":"category",
-            "phase1":"category",
+            "strand1":"string",
+            "strand2":"string",
+            "phase0":"string",
+            "phase1":"string",
             "phase_prob00":"float",
             "phase_prob01":"float",
             "phase_prob10":"float",
