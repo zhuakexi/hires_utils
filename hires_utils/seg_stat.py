@@ -63,6 +63,7 @@ def seg_values(filename:str)->tuple:
         if a + b == 0:
             return 0.0, 0.0, -1, 1.0, yp
         if Xa + Xb == 0:
+            hap_score = abs(a - b)/(a + b)
             return hap1_phased, hap2_phased, -1, hap_score, yp 
     return hap1_phased, hap2_phased, biasedX_score, hap_score, yp
 def judge(hap_score:float, yp:float)->str:
