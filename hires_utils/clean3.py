@@ -7,6 +7,7 @@ from .hires_io import parse_pairs, parse_3dg, write_3dg
 
 def get_legs(pairs:pd.DataFrame)->pd.DataFrame:
     # get all legs of contacts
+    # Index isn't unique. Not Good.
     leg_list1 = pairs[["chr1", "pos1"]]
     leg_list2 = pairs[["chr2", "pos2"]]
     leg_list1.columns = leg_list2.columns = ["chr","pos"]
@@ -47,7 +48,7 @@ def particle_evidence(chrom_structure:pd.DataFrame, legs:pd.DataFrame, chrom:str
             )
     point_counts = point_near_count(
         chrom_structure.index.get_level_values("pos"),
-        legs.loc[chrom, "pos"],
+        legs.loc[legs.index==chrom, "pos"],
         max_clean_distance
     )
     return pd.Series(
