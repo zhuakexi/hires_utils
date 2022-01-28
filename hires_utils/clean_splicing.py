@@ -62,7 +62,7 @@ def clean_splicing(pairs:pd.DataFrame, ref:dict, thread:int)->pd.DataFrame:
     if pairs.shape[0] == 0:
         print("clean_splicing: Input file hase 0 contact.")
         return pairs
-    intra = pairs.query('chr1 == chr2') # only search for intra
+    intra = pairs[pairs["chr1"]==pairs["chr2"]] # only search for intra
     working_func = partial(search_chromosome, ref=ref) # pool.map can't take multiple iterable as arguments
     input_data = [(chromosome, per_chr_contacts) for chromosome, per_chr_contacts in intra.groupby("chr1")] # pool.map can't take additional keyword argument
     sys.stderr.write("hires_utils::clean_splicing: input parsed, search in %d thread\n" % thread)
