@@ -56,15 +56,17 @@ def seg_values(filename:str)->tuple:
         yp = Y / (a+b+u) # y percent
         hap1_phased = a / (a+b+u)
         hap2_phased = b / (a+b+u)
-        biasedX_score = abs(Xa - Xb)/(Xa + Xb)
+    except ZeroDivisionError:
+        yp, hap1_phased, hap2_phased= \
+            -1, 0.0, 0.0
+    try:
         hap_score = abs(a - b)/(a + b)
     except ZeroDivisionError:
-        # fully capture the Error
-        if a + b == 0:
-            return 0.0, 0.0, -1, 1.0, yp
-        if Xa + Xb == 0:
-            hap_score = abs(a - b)/(a + b)
-            return hap1_phased, hap2_phased, -1, hap_score, yp 
+        hap_score = -1
+    try:
+        biasedX_score = abs(Xa - Xb)/(Xa + Xb)
+    except ZeroDivisionError:
+        biasedX_score = -1
     return hap1_phased, hap2_phased, biasedX_score, hap_score, yp
 def judge(hap_score:float, yp:float)->str:
     # hap_score [0,1] 0:dip 1:hap
