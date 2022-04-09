@@ -1,26 +1,49 @@
+# count fastq, pairs files; gzipped or not
 import gzip
+from itertools import takewhile, repeat
 from subprocess import check_output, CalledProcessError
+import os
 from .hires_io import gen_record, divide_name
 
-
-def zcount(filename:str,target:str)->int:
-    # count zipped file line number
-    try:
-        output_bytes = check_output([
-            "zgrep","-c",target,
-            filename])
-    except CalledProcessError:
-        return 0
-    return int(output_bytes.decode("utf-8").strip())
+def count_comments(filename:str, comark:str):
+    """
+    Count starting comment lines.
+    Input:
+        filename: path of gzipped file (ends with .gz or .gzip) or txt file(other extend names)
+        comark: comment line starts with ...
+    Output:
+        number of comment lines; int
+    """
+    if os.path.splitext(filename)[1] in [".gz",".gzip"]:
+        f = gzip.open(filename, "rt")
+    else:
+        f = open(filename, "rt")
+    comments = 0
+    for line in takewhile(lambda x: x.startswith(comark), f):
+            comments += 1
+    f.close()
+    return comments
+def big_count_line(filename):
+    """    
+    Count line number of file using raw.read and byte count trick.
+    Detect extend name.
+    Input:
+        filename: path of gzipped file (ends with .gz or .gzip) or txt file(other extend names)
+    Return:
+        line number; int 
+    """
+    if os.path.splitext(filename)[1] in [".gz",".gzip"]:
+        with gzip.open(filename, "rb") as f:
+            bufgen = takewhile(lambda x: x, (f.read(1024*1024) for _ in repeat(None)))
+            line_num = sum( buf.count(b'\n') for buf in bufgen if buf)
+    else:
+        with open(filename, "rb") as f:
+            bufgen = takewhile(lambda x: x, (f.raw.read(1024*1024) for _ in repeat(None)))
+            line_num = sum( buf.count(b'\n') for buf in bufgen if buf)
+    return line_num
 def count_pairs(filename:str)->int:
     # count number of contacts in 4DN pairs file
-    comments = 0
-    with gzip.open(filename,"rt") as f:
-        for line in f:
-            if line[0] == "#":
-                comments += 1
-    all_lines = zcount(filename, "$")
-    return all_lines - comments
+    return big_count_line(filename) - count_comments(filename, "#")
 def count_fastq(filename:str, form:str="p")->int:
     # count fastq file
     # Input:
@@ -30,11 +53,12 @@ def count_fastq(filename:str, form:str="p")->int:
     # Output:
     #    number of sequencing reads
     if form == "s" or form == "m":
-        # in fastq, @ID starts one read
-        return zcount(filename,"@")
+        # in fastq, @ID starts one read, but quality score line has ^@ too.
+        # popular solution is line_num/4
+        return big_count_line(filename) // 4
     elif form == "p":
         # include the paired fastq file 
-        return zcount(filename,"@") * 2
+        return big_count_line(filename) // 4 * 2
     else:
         return -1
 def cli(args):

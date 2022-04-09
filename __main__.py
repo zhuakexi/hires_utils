@@ -1,2 +1,2 @@
-from hires_utils.hires import cli
+from hires_utils.cli import cli
 cli()
