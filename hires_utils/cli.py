@@ -290,6 +290,14 @@ def cli():
         help="[for pipeline] sample name/ID, used in record",
         default=None
     )
+    seg_stat_arg.add_argument(
+        "-dump", "--dump",
+        dest = "dump",
+        metavar = "Bool",
+        type = bool,
+        help="whether to dump per-chromosome counting, store in additional *dump* dir if rd enabled",
+        default=False
+    )
     
 #--------- clean_isolate subcommand ------
     clean_isolated_arg = subcommands.add_parser(

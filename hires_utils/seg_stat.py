@@ -1,9 +1,11 @@
+from random import sample
+import os
 import pandas as pd
 from .hires_io import parse_seg, gen_record, divide_name, print_records
 
 def cli(args):
-    filename, output, record_dir, sample_name = \
-        args.filename[0], args.output, args.record_directory, args.sample_name
+    filename, output, record_dir, sample_name, dump = \
+        args.filename[0], args.output, args.record_directory, args.sample_name, args.dump
     hap1_phased, hap2_phased, biasedX_score, hap_score, yp, xp, cp_counts = \
         seg_values(filename)
     assigned = judge(hap_score, yp)
@@ -25,12 +27,21 @@ def cli(args):
     if output == None:
         # print to stdout
         print_records(records)
+        if dump:
+            print_records({sample_name + "-per_chrom_count":cp_counts})
     else:
         # print to log file
         with open(output,"wt") as f:
             print_records(records, f)
+            if dump:
+                print_records({sample_name + "-per_chrom_count":cp_counts})
     if record_dir != None:
+        if dump:
+            if not os.isdir(os.path.join(record_dir, "dump")):
+                os.mkdir(os.path.join(record_dir, "dump"))
+            records[sample_name].update(cp_counts)
         gen_record(records, record_dir)
+
 def seg_values(filename:str)->tuple:
     comments, legs = parse_seg(filename)
     df = pd.DataFrame(
