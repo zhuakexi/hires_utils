@@ -43,7 +43,7 @@ def seg_values(filename:str)->tuple:
     res = pd.concat([defaults, cp_count], axis=1, join="outer").iloc[:,0]
     res.fillna(0,inplace=True)
     
-    u, a, b = res.groupby("phasing").sum()
+    u, a, b = res.drop(["chrX","chrY"],level=0).groupby("phasing").sum()
     Xu, Xa, Xb = res["chrX"]
     Y = res["chrY"].sum()
     X = res["chrX"].sum()
