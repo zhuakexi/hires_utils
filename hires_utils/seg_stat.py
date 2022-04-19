@@ -37,7 +37,7 @@ def cli(args):
                 print_records({sample_name + "-per_chrom_count":cp_counts})
     if record_dir != None:
         if dump:
-            if not os.isdir(os.path.join(record_dir, "dump")):
+            if not os.path.isdir(os.path.join(record_dir, "dump")):
                 os.mkdir(os.path.join(record_dir, "dump"))
             records[sample_name].update(cp_counts)
         gen_record(records, record_dir)
