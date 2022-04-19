@@ -1,9 +1,10 @@
+import pandas as pd
 from .hires_io import parse_seg, gen_record, divide_name, print_records
 
 def cli(args):
     filename, output, record_dir, sample_name = \
         args.filename[0], args.output, args.record_directory, args.sample_name
-    hap1_phased, hap2_phased, biasedX_score, hap_score, yp = \
+    hap1_phased, hap2_phased, biasedX_score, hap_score, yp, xp, cp_counts = \
         seg_values(filename)
     assigned = judge(hap_score, yp)
     # generate records
@@ -17,6 +18,7 @@ def cli(args):
                 "biasedX_score":biasedX_score,
                 "hap_score":hap_score,
                 "ypercent":yp,
+                "xpercent":xp,
                 "cell_state":assigned
             }
     }
@@ -30,29 +32,24 @@ def cli(args):
     if record_dir != None:
         gen_record(records, record_dir)
 def seg_values(filename:str)->tuple:
-    Xu = Xa = Xb = Y = 0
-    u = a = b = 0
-    _, segs = parse_seg(filename)
-    for seg in segs:
-        #print(seg)
-        attrs = seg.split("!")
-        if attrs[0] == "chrX":
-            if attrs[4] == "0":
-                Xa += 1
-            elif attrs[4] == "1":
-                Xb += 1
-            else:
-                Xu += 1
-        elif attrs[0] == "chrY":
-            Y += 1
-        # autosome 
-        elif attrs[4] == "0":
-            a += 1
-        elif attrs[4] == "1":
-            b += 1
-        else:
-            u += 1
+    comments, legs = parse_seg(filename)
+    df = pd.DataFrame(
+        (leg.split("!") for leg in legs),
+        columns=["chrom","genome_start","genome_end","strand","phasing","a","b"]
+    )
+    cp_count = df.value_counts(["chrom","phasing"])
+    defaults = pd.DataFrame([(line.split()[1],phase) for line in comments for phase in [".","0","1"]], columns = ["chrom","phasing"])
+    defaults.set_index(["chrom","phasing"], inplace=True)
+    res = pd.concat([defaults, cp_count], axis=1, join="outer").iloc[:,0]
+    res.fillna(0,inplace=True)
+    
+    u, a, b = res.groupby("phasing").sum()
+    Xu, Xa, Xb = res["chrX"]
+    Y = res["chrY"].sum()
+    X = res["chrX"].sum()
+    
     try:
+        xp = X / (a+b+u) # x percent
         yp = Y / (a+b+u) # y percent
         hap1_phased = a / (a+b+u)
         hap2_phased = b / (a+b+u)
@@ -67,7 +64,7 @@ def seg_values(filename:str)->tuple:
         biasedX_score = abs(Xa - Xb)/(Xa + Xb)
     except ZeroDivisionError:
         biasedX_score = -1
-    return hap1_phased, hap2_phased, biasedX_score, hap_score, yp
+    return hap1_phased, hap2_phased, biasedX_score, hap_score, yp, xp, res.to_dict()
 def judge(hap_score:float, yp:float)->str:
     # hap_score [0,1] 0:dip 1:hap
     # try best to avoid unassigned
