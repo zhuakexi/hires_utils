@@ -34,7 +34,7 @@ def cli(args):
         with open(output,"wt") as f:
             print_records(records, f)
             if dump:
-                print_records({sample_name + "-per_chrom_count":cp_counts.to_dict()})
+                print_records({sample_name + "-per_chrom_count":cp_counts.to_dict()}, f)
     if record_dir != None:
         if dump:
             if not os.path.isdir(os.path.join(record_dir, "dump")):
