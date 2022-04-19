@@ -28,18 +28,18 @@ def cli(args):
         # print to stdout
         print_records(records)
         if dump:
-            print_records({sample_name + "-per_chrom_count":cp_counts})
+            print_records({sample_name + "-per_chrom_count":cp_counts.to_dict()})
     else:
         # print to log file
         with open(output,"wt") as f:
             print_records(records, f)
             if dump:
-                print_records({sample_name + "-per_chrom_count":cp_counts})
+                print_records({sample_name + "-per_chrom_count":cp_counts.to_dict()})
     if record_dir != None:
         if dump:
             if not os.path.isdir(os.path.join(record_dir, "dump")):
                 os.mkdir(os.path.join(record_dir, "dump"))
-            records[sample_name].update(cp_counts)
+            cp_counts.to_pickle(os.path.join(record_dir, "dump", sample_name+"_cp_counts.pkl"))
         gen_record(records, record_dir)
 
 def seg_values(filename:str)->tuple:
@@ -75,7 +75,7 @@ def seg_values(filename:str)->tuple:
         biasedX_score = abs(Xa - Xb)/(Xa + Xb)
     except ZeroDivisionError:
         biasedX_score = -1
-    return hap1_phased, hap2_phased, biasedX_score, hap_score, yp, xp, res.to_dict()
+    return hap1_phased, hap2_phased, biasedX_score, hap_score, yp, xp, res
 def judge(hap_score:float, yp:float)->str:
     # hap_score [0,1] 0:dip 1:hap
     # try best to avoid unassigned
