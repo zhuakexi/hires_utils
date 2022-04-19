@@ -128,8 +128,12 @@ def parse_3dg(filename:str)->pd.DataFrame:
         s.attrs["backbone_unit"] = backbone_unit    
     return s
 def parse_seg(filename:str) -> tuple:
-    # read in .seg file in dip-c
-    # return comments and list of all segment element
+    """
+    read in .seg file in dip-c
+    return comments and list of all segment element
+    seg_format: read1/read1(. for read1, m for read2/mate), read_start, read_end, chrom, genome_start,
+        genome_end, strand, haplotype(.for unknown, 0 for paternal, 1 for maternal)
+    """
     comments = []
     segs = []
     with gzip.open(filename,"rt") as f:
