@@ -293,10 +293,8 @@ def cli():
     seg_stat_arg.add_argument(
         "-dump", "--dump",
         dest = "dump",
-        metavar = "Bool",
-        type = bool,
-        help="whether to dump per-chromosome counting, store in additional *dump* dir if rd enabled",
-        default=False
+        action="store_true",
+        help="whether to dump per-chromosome counting, store in additional *dump* dir if rd enabled"
     )
     
 #--------- clean_isolate subcommand ------
