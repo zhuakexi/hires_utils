@@ -375,14 +375,14 @@ def cli():
     )
     mend_umi_arg.set_defaults(handle=mend_umi.cli)
     mend_umi_arg.add_argument(
-        "--input",
+        "--input","-i",
         dest="input_file",
         help="input file path",
         action = "store",
         required=True
     )
     mend_umi_arg.add_argument(
-        "--output",
+        "--output","-o",
         dest="output_file",
         help="output file path",
         action="store",
