@@ -10,6 +10,7 @@ from . import mmcif
 from . import clean_leg
 from . import gcount
 from . import seg_stat
+from . import mend_umi
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -367,6 +368,27 @@ def cli():
         action="store",
         required=True
     )
+# --------- mend_umi subcommand ------
+    mend_umi_arg = subcommands.add_parser(
+        "mend_umi",
+        help = "adding UB tag with umi stored in readID"
+    )
+    mend_umi_arg.set_defaults(handle=mend_umi.cli)
+    mend_umi_arg.add_argument(
+        "--input",
+        dest="input_file",
+        help="input file path",
+        action = "store",
+        required=True
+    )
+    mend_umi_arg.add_argument(
+        "--output",
+        dest="output_file",
+        help="output file path",
+        action="store",
+        required=True
+    )
+
 # --------- sep_clean subcommand ---------
     sep_clean_arg = subcommands.add_parser(
                             "sep_clean",
