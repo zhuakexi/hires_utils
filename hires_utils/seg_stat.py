@@ -24,7 +24,7 @@ def cli(args):
                 "cell_state":assigned
             }
     }
-    if output == None:
+    if output is None:
         # print to stdout
         print_records(records)
         if dump:
