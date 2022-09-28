@@ -38,7 +38,7 @@ def cli(args):
     if record_dir != None:
         if dump:
             if not os.path.isdir(os.path.join(record_dir, "dump")):
-                os.mkdir(os.path.join(record_dir, "dump"))
+                os.makedirs(os.path.join(record_dir, "dump")) # record_dir may not be exist
             cp_counts.to_pickle(os.path.join(record_dir, "dump", sample_name+"_cp_counts.pkl"))
         gen_record(records, record_dir)
 
