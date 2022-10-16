@@ -95,9 +95,17 @@ def parse_gtf(filename:str) -> pd.DataFrame:
     gencode = pd.read_table(filename, comment="#", header=None)
     gencode.columns="seqname source feature start end score strand frame group".split()
     return gencode
-def parse_3dg(filename:str)->pd.DataFrame:
-    # read in hickit 3dg file(or the .xyz file)
-    # norm chr name alias
+def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
+    """
+    Read in hickit 3dg file(or the .xyz file)
+    Norm chr name alias
+    Read into dataframe.attrs if has comments, treat last comment line as backbone_unit
+    Input:
+        filename: file path
+        sorting: whether to sort chromosome and positions
+    Output:
+        3 col dataframe with 2-level multindex: (chrom, pos) x, y, z
+    """
 
     ## get alias file in package
     ## reference is a "data module" with its own __init__.py
@@ -126,6 +134,8 @@ def parse_3dg(filename:str)->pd.DataFrame:
         s.attrs["comments"] = comments
         backbone_unit = float(comments[-1].split(":")[1].strip())
         s.attrs["backbone_unit"] = backbone_unit    
+    if sorting:
+        s.sort_index(inplace=True)
     return s
 def parse_seg(filename:str) -> tuple:
     """
