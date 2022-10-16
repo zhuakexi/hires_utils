@@ -4,6 +4,7 @@ out/
 ref/
 #on python & IDE
 __pycache__/
+*/__pycache__/*
 .pydevproject
 .project
 .vscode/
