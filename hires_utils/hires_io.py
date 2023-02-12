@@ -111,12 +111,17 @@ def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
     ## reference is a "data module" with its own __init__.py
     dat = get_data(reference.__name__, "chrom_alias.csv")
     dat_f = StringIO(dat.decode())
+    # wrap
     norm_chr = fill_func_ref(
                     converter_template,
                     dat_f,
                     "alias")
     ## read comments
-    with open(filename) as f:
+    if filename.endswith(".gz"):
+        open_func = gzip.open
+    else:
+        open_func = open
+    with open_func(filename,"rt") as f:
         comments = []
         for line in f.readlines():
             if line[0] != "#":
