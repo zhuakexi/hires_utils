@@ -11,6 +11,7 @@ from . import clean_leg
 from . import gcount
 from . import seg_stat
 from . import mend_umi
+from . import mend_cellbarcode
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -389,7 +390,33 @@ def cli():
         action="store",
         required=True
     )
-
+# --------- mend_cellbarcode subcommand ------
+    mend_cellbarcode_arg = subcommands.add_parser(
+        "mend_cellbarcode",
+        help = "adding CB tag with user-defined cell barcode"
+    )
+    mend_cellbarcode_arg.set_defaults(handle=mend_cellbarcode.cli)
+    mend_cellbarcode_arg.add_argument(
+        "--input","-i",
+        dest="input_file",
+        help="input file path",
+        action = "store",
+        required=True
+    )
+    mend_cellbarcode_arg.add_argument(
+        "--cellbarcode","-c",
+        dest="cellbarcode",
+        help="cell barcode",
+        action="store",
+        required=True
+    )
+    mend_cellbarcode_arg.add_argument(
+        "--output","-o",
+        dest="output_file",
+        help="output file path",
+        action="store",
+        required=True
+    )
 # --------- sep_clean subcommand ---------
     sep_clean_arg = subcommands.add_parser(
                             "sep_clean",
