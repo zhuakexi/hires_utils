@@ -17,6 +17,7 @@ def test_count_tag2(request):
     with gzip.open(filename, 'rt') as f:
         sam = f.readlines()
     # test count_tag function
-    res = count_tag(sam, "AS")
-    print(res)
+    res = count_tag(sam, "XS")
     assert res[("Control_03","Unassigned_NoFeatures")] == 62
+    assert res[("noEXO1_02", "Assigned")] == 389
+    assert res[("noEXO1_05", "Unassigned_NoFeatures")] == 101

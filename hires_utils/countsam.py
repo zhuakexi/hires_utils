@@ -24,8 +24,8 @@ def count_tag(sam, tag):
         return x
     result = reduceby(RG_tag, count, sam, 0)
     return result
-import gzip
-filename = "/share/home/ychi/dev/hires_utils/tests/data/FC.sam"
-with gzip.open(filename, 'rt') as f:
-        sam = f.readlines()
-print(count_tag(sam, "XS"))
+# import gzip
+# filename = "/share/home/ychi/dev/hires_utils/tests/data/FC.sam.gz"
+# with gzip.open(filename, 'rt') as f:
+#         sam = f.readlines()
+# print(count_tag(sam, "XS"))
