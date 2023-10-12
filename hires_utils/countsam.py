@@ -24,8 +24,19 @@ def count_tag(sam, tag):
         return x
     result = reduceby(RG_tag, count, sam, 0)
     return result
+def dump_tsv(res, output):
+    """
+    Dump the result of count_tag to a TSV file.
+    Input:
+        res - dict, key: (read group, tag value), value: count
+        output - the output file name
+    """
+    with open(output, 'w') as f:
+        for key, value in res.items():
+            f.write('\t'.join([key[0], key[1], str(value)]) + '\n')
 # import gzip
 # filename = "/share/home/ychi/dev/hires_utils/tests/data/FC.sam.gz"
 # with gzip.open(filename, 'rt') as f:
 #         sam = f.readlines()
-# print(count_tag(sam, "XS"))
+# dump_tsv(count_tag(sam, "XS"), "out/count_tag_FC.tsv")
+# # print(count_tag(sam, "XS"))
