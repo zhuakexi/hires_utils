@@ -12,6 +12,7 @@ from . import gcount
 from . import seg_stat
 from . import mend_umi
 from . import mend_cellbarcode
+from . import countsam
 def cli():
     parser = argparse.ArgumentParser(prog="hires", description="Functions for hires pipline")
     subcommands = parser.add_subparsers(title="These are sub-commands",metavar="command")
@@ -414,6 +415,41 @@ def cli():
         "--output","-o",
         dest="output_file",
         help="output file path",
+        action="store",
+        required=True
+    )
+# --------- countsam subcommand ------
+    countsam_arg = subcommands.add_parser(
+        "countsam",
+        help = "count number of records in sam file"
+    )
+    countsam_arg.set_defaults(handle=countsam.cli)
+    countsam_arg.add_argument(
+        "--input","-i",
+        dest="input_file",
+        help="input file path",
+        action = "store",
+        required=False
+    ) 
+    countsam_arg.add_argument(
+        "--input_fmt","-F",
+        dest="input_fmt",
+        help="input file format, if STDIn, input file will be ignored",
+        choices=["STDIN","SAM","SAMgz","BAM"],  
+        action="store",
+        default="BAM"
+    )
+    countsam_arg.add_argument(
+        "--output","-o",
+        dest="output_file",
+        help="output file path",
+        action="store",
+        required=True
+    )
+    countsam_arg.add_argument(
+        "--tag","-t",
+        dest="tag",
+        help="tag to count",
         action="store",
         required=True
     )
