@@ -26,3 +26,5 @@ python3 hires.py clean_splicing -h
 python3 hires.py clean_splicing  -r bin_10K_FULL_index -o out/test.c3.pairs.gz test/test.pairs.gz
 python3 hires.py sep_clean -h
 python3 hires.py sep_clean -n 4 -i test/test.impute.pairs.gz -o1 out/test.hap.pairs.gz -o2 out/for_hickit.pairs.gz
+# countsam
+python3 hires.py countsam -F SAMgz -i tests/data/FC.sam.gz -o out/FCXS.tsv -t  XS
