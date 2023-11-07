@@ -8,7 +8,8 @@ __pycache__/
 .pydevproject
 .project
 .vscode/
-
+__init__.pyc
+003.cif
 #on jupyter notebook
 *.ipynb
 .ipynb_checkpoints/
