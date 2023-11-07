@@ -53,4 +53,5 @@ dependencies:
       - pytest==7.1.1
       - rmsd==1.4
       - tomli==2.0.1
+      - toolz==0.12.0
 prefix: /share/home/ychi/mambaforge/envs/hires
