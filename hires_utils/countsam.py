@@ -5,6 +5,8 @@ import time
 def cli(args):
     input_file, input_fmt, tag, output_file = \
         args.input_file, args.input_fmt, args.tag, args.output_file
+    if output_file == input_file:
+        raise ValueError("output_file must be different from input_file")
     if input_fmt == 'STDIN':
         res = count_tag(sys.stdin, tag)
     elif input_fmt == 'SAM':
@@ -16,7 +18,7 @@ def cli(args):
             res = count_tag(f, tag)
     elif input_fmt == 'BAM':
         import pysam
-        with pysam.AlignmentFile(input_file, 'rb', threads=2, check_sq=False) as f:
+        with pysam.AlignmentFile(input_file, 'rb', threads=6, check_sq=False) as f:
             # transform AlignedSegment to SAM format
             sam = map(lambda x: x.to_string(), f)
             res = count_tag(sam, tag)
