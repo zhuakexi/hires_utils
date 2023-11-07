@@ -1,14 +1,16 @@
-import time
-import sys
 import gzip
+import json
 import os
 import sys
+import time
 import uuid
-import json
-import pandas as pd
 from functools import partial
-from pkgutil import get_data
 from io import StringIO
+from pathlib import Path
+from pkgutil import get_data
+
+import pandas as pd
+
 from . import reference
 
 
@@ -23,7 +25,10 @@ has 27 headline start with "#"
 def converter_template(c_in:str,ref_dict:pd.DataFrame):
     # a reat_table converter function
     #print(ref_dict)
-    return ref_dict[c_in]
+    if c_in in ref_dict:
+        return ref_dict[c_in]
+    else:
+        return c_in
 def fill_func_ref(template_func:callable, ref_file:str, index_col:str)->callable:
     # read in ref_file for template_fucn, generate new func
     # hope will boost new func's speed
@@ -33,6 +38,19 @@ def fill_func_ref(template_func:callable, ref_file:str, index_col:str)->callable
     ref_dict = ref_df.iloc[:,0].to_dict()
     working_func = partial(template_func, ref_dict=ref_dict)
     return working_func
+# converter: name -> standard name for pandas read_table 
+norm_chr = fill_func_ref(
+    converter_template,
+    StringIO(
+        ## get alias file in package
+        ## reference is a "data module" with its own __init__.py
+        get_data(
+            reference.__name__,
+            "chrom_alias.csv"
+            ).decode()
+        ),
+    "alias"
+    )
 ## get sample name
 def divide_name(filename):
     #home-made os.path.splitext, for it can't handle "name.a.b.c" properly
@@ -107,17 +125,9 @@ def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
         3 col dataframe with 2-level multindex: (chrom, pos) x, y, z
     """
 
-    ## get alias file in package
-    ## reference is a "data module" with its own __init__.py
-    dat = get_data(reference.__name__, "chrom_alias.csv")
-    dat_f = StringIO(dat.decode())
-    # wrap
-    norm_chr = fill_func_ref(
-                    converter_template,
-                    dat_f,
-                    "alias")
     ## read comments
-    if filename.endswith(".gz"):
+    filename = Path(filename)
+    if filename.suffix == ".gz":
         open_func = gzip.open
     else:
         open_func = open
@@ -142,6 +152,34 @@ def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
     if sorting:
         s.sort_index(inplace=True)
     return s
+def parse_ref(filename:str, index=False, header=None, value_name="value") -> pd.DataFrame:
+    """
+    Parse reference file (csv file, with or without header or index, 
+        only take first 3 non-index col), return a dataframe.
+    Will convert homologous chromosomes to standard names.
+    Input:
+        filename: file path,
+        index: whether the csv file has index col, will drop it
+        header: give pd.read_table
+        value_name: set column name for value col
+    Output:
+        pd.DataFrame with index: (chrom, pos) and column: value_name
+    """
+    ## read real positions
+    ref = pd.read_table(
+        filename,
+        comment="#",
+        converters={0:norm_chr},
+        header=header
+        )
+    # treat index
+    if index:
+        ref = ref.iloc[:, 1:4]
+    else:
+        ref = ref.iloc[:, 0:3]
+    ref.columns = ["chr", "pos", value_name]
+    ref.set_index(["chr", "pos"], inplace=True)
+    return ref
 def parse_seg(filename:str) -> tuple:
     """
     read in .seg file in dip-c
