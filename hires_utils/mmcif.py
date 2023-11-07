@@ -2,7 +2,9 @@
 # @Date 210723
 
 import sys
+
 import pandas as pd
+from .hires_io import parse_3dg, parse_ref
 
 def cli(args):
     input_file, output_file, factorBpath, maxGap= \
@@ -36,16 +38,45 @@ class Bin:
                           "1",str(self.position),self.nextBin.chromosome,"003",
                           "1",str(self.nextBin.position)])
         else: return None
-        
-def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,maxGap:int=1000000):
+def chrom_rm_suffix(chrom:str):
     """
-    funtion as its name
+    Remove suffix in chromosome name like (mat), (pat), a, b, A, B
+    TODO: this is too specific, should be more general, or recieve a list of suffix to remove
+    Input:
+        chrom: pd.Series
+    Output:
+        pd.Series
     """
-    positions = pd.read_table(tdgPath,header=None,names="chr pos x y z".split()).replace("[()]","",regex=True) # read in
+    return chrom.str.replace(r"\(?[mpatbAB]*\)?","",regex=True)       
+def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,dupref=True,maxGap:int=1000000):
+    """
+    Transform 3dg/xyz file to mmcif file
+    Input:
+        tdgPath: path to 3dg/xyz file
+        outputCifPath: path to output mmcif file
+        factorBpath: path to factorB file
+        dupref: whether to draw diploid structure with haploid reference, like CpG frequency
+        maxGap: max gap to connect two bins
+    """
+    positions = parse_3dg(tdgPath).reset_index()
     if(factorBpath!=None):
-        factorB = pd.read_table(factorBpath,header=None,names="chrom pos factorB".split())
-        positions = pd.merge(positions.assign(chrom=positions.chr.replace('.at','',regex=True)),factorB,how="left")
-        print(positions)
+        factorB = parse_ref(factorBpath,value_name="factorB").reset_index()
+        if dupref:
+            positions = positions.assign(new_chr=chrom_rm_suffix(positions["chr"]))
+            factorB.rename(columns={"chr":"new_chr"},inplace=True)
+            positions = pd.merge(
+                positions,
+                factorB,
+                on = ["new_chr","pos"],
+                how = "left"
+                ).drop(columns=["new_chr"])
+        else:
+            positions = pd.merge(
+                positions,
+                factorB,
+                on=["chr","pos"],
+                how="left"
+                )
     grouped = positions.groupby("chr") # split chromosomes
     
     binList = []
@@ -111,4 +142,24 @@ _atom_site.auth_asym_id
 
 
 if __name__ == '__main__':
-    threedg_to_cif(sys.argv[1],sys.argv[2])
+    import sys
+    sys.path.insert(0, "/share/home/ychi/dev/hic_basic")
+    from io import StringIO
+    
+    import pandas as pd
+    from hic_basic.plot.render import clip_b_pymol
+    # test diploid
+    clip_b_pymol(
+        "/shareb/ychi/repo/sperm40_GM/3dg_c/GMO1001.clean.20k.4.3dg",
+        "/share/home/ychi/software/dip-c/color/hg19.cpg.20k.hom.txt",
+        "/share/home/ychi/dev/hires_utils/out/GMO1001.clean.20k.4.cpg.dip.png",
+        tmpdir = "/share/home/ychi/dev/hires_utils/out/",
+        dupref=False
+        )
+    # test haploid
+    clip_b_pymol(
+        "/shareb/ychi/repo/sperm40_GM/3dg_c/GMO1001.clean.20k.4.3dg",
+        "/share/home/ychi/software/dip-c/color/hg19.cpg.20k.txt",
+        "/share/home/ychi/dev/hires_utils/out/GMO1001.clean.20k.4.cpg.hap.png",
+        tmpdir = "/share/home/ychi/dev/hires_utils/out/",
+        )
