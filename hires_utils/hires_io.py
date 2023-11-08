@@ -113,7 +113,7 @@ def parse_gtf(filename:str) -> pd.DataFrame:
     gencode = pd.read_table(filename, comment="#", header=None)
     gencode.columns="seqname source feature start end score strand frame group".split()
     return gencode
-def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
+def parse_3dg(file:str, sorting=False)->pd.DataFrame:
     """
     Read in hickit 3dg file(or the .xyz file)
     Norm chr name alias
@@ -126,19 +126,27 @@ def parse_3dg(filename:str, sorting=False)->pd.DataFrame:
     """
 
     ## read comments
-    filename = Path(filename)
-    if filename.suffix == ".gz":
-        open_func = gzip.open
-    else:
-        open_func = open
-    with open_func(filename,"rt") as f:
-        comments = []
-        for line in f.readlines():
+    comments = []
+    if isinstance(file, StringIO):
+        for line in file.getvalue().splitlines():
             if line[0] != "#":
                 break
-            comments.append(line)
+            comments.append(line.strip("#\n"))
+    elif isinstance(file, str):
+        try:
+            with gzip.open(file,"rt") as f:
+                for line in f:
+                    if line[0] != "#":
+                        break
+                    comments.append(line.strip("#\n"))
+        except gzip.BadGzipFile:
+            with open(file,"rt") as f:
+                for line in f:
+                    if line[0] != "#":
+                        break
+                    comments.append(line.strip("#\n"))
     ## read real positions
-    s = pd.read_table(filename, 
+    s = pd.read_table(file, 
                       comment="#",header=None,
                      index_col=[0,1],
                      converters={0:norm_chr})
@@ -236,3 +244,24 @@ def print_records(dat:dict,f=None):
             print(sample,file=f)
             for attr in dat[sample]:
                 print(str(attr) + ":" + str(dat[sample][attr]),file=f)
+if __name__ == "__main__":
+    from io import StringIO
+    res = parse_3dg(
+        "tests/data/test.3dg.gz",
+        sorting=True
+    )
+    # suppose I wan't to switch x and y on the fly
+    res = parse_3dg(
+        StringIO(
+            pd.read_table(
+                "tests/data/test.3dg.gz",
+                comment="#",
+                header=None,
+                names = "chr pos x y z".split()
+            )[["chr","pos","y","x","z"]].to_csv(sep="\t",header=None,index=False)
+            )
+    )
+    res = parse_3dg(
+        "tests/data/test.3dg",
+        sorting=True
+    )
