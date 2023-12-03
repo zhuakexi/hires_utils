@@ -47,7 +47,16 @@ def chrom_rm_suffix(chrom:str):
     Output:
         pd.Series
     """
-    return chrom.str.replace(r"\(?[mpatbAB]*\)?","",regex=True)       
+    return chrom.str.replace(r"\(?[mpatbAB]*\)?","",regex=True)
+def chrom_rm_prefix(chrom:str):
+    """
+    Remove prefix in chromosome name like chr, Chr, CHR
+    Input:
+        chrom: pd.Series
+    Output:
+        pd.Series
+    """
+    return chrom.str.replace(r"^[Cc][Hh][Rr]","",regex=True)
 def threedg_to_cif(tdgPath:str,outputCifPath:str,factorBpath:str=None,dupref=True,maxGap:int=1000000):
     """
     Transform 3dg/xyz file to mmcif file
