@@ -139,7 +139,7 @@ def parse_3dg(file:str, sorting=False)->pd.DataFrame:
                     if line[0] != "#":
                         break
                     comments.append(line.strip("#\n"))
-        except gzip.BadGzipFile:
+        except OSError:
             with open(file,"rt") as f:
                 for line in f:
                     if line[0] != "#":
