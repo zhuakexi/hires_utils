@@ -61,7 +61,7 @@ def build_records(sample_name, attr, final_RMSD, per_pair_rmsds, good_files):
         values.append(per_pair_rmsds[pair])
     for struct_name in good_files:
         keys.append(attr + struct_name)
-        values.append(good_files[struct_name])
+        values.append(good_files.get(struct_name, None))
     return {sample_name:dict(zip(keys, values))}
 def cli(args):
     filenames, result_log, record_dir, sample_name, attr = \
@@ -115,7 +115,8 @@ def chrom_rmsd(filenames):
         keys = ["g_struct1", "g_struct2", "g_struct3"]
         good_files_d = dict(zip(keys,good_files))
     else:
-        good_files_d = {}
+        keys = ["g_struct1", "g_struct2", "g_struct3"]
+        good_files_d = dict.fromkeys(keys, None)
     return final_RMSD, rmsds, good_files_d
 
 
