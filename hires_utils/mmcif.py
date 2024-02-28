@@ -47,7 +47,7 @@ def chrom_rm_suffix(chrom:str):
     Output:
         pd.Series
     """
-    return chrom.str.replace(r"\(?[mpatbAB]*\)?","",regex=True)
+    return chrom.str.replace(r"\(?_?[mpatbAB]*\)?_?","",regex=True)
 def chrom_rm_prefix(chrom:str):
     """
     Remove prefix in chromosome name like chr, Chr, CHR
