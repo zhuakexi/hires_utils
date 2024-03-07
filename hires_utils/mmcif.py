@@ -1,6 +1,7 @@
 # transform 3dg/xyz to mmcif
 # @Date 210723
 
+import re
 import sys
 
 import pandas as pd
@@ -38,7 +39,7 @@ class Bin:
                           "1",str(self.position),self.nextBin.chromosome,"003",
                           "1",str(self.nextBin.position)])
         else: return None
-def chrom_rm_suffix(chrom:str):
+def chrom_rm_suffix(chrom:pd.Series):
     """
     Remove suffix in chromosome name like (mat), (pat), a, b, A, B
     TODO: this is too specific, should be more general, or recieve a list of suffix to remove
@@ -47,7 +48,10 @@ def chrom_rm_suffix(chrom:str):
     Output:
         pd.Series
     """
-    return chrom.str.replace(r"\(?_?[mpatbAB]*\)?_?","",regex=True)
+    if isinstance(chrom,str):
+        return re.sub(r"\(?_?[mpatbAB]*\)?_?","",chrom)
+    else:
+        return chrom.str.replace(r"\(?_?[mpatbAB]*\)?_?","",regex=True)
 def chrom_rm_prefix(chrom:str):
     """
     Remove prefix in chromosome name like chr, Chr, CHR
