@@ -53,6 +53,8 @@ norm_chr = fill_func_ref(
     )
 ## get sample name
 def divide_name(filename):
+    if not (isinstance(filename, str) or isinstance(filename, Path)):
+        return "", ""
     #home-made os.path.splitext, for it can't handle "name.a.b.c" properly
     basename = os.path.basename(filename)
     parts = basename.split(".") #split return >= 1 length list
@@ -62,8 +64,39 @@ def divide_name(filename):
         return parts[0], "."+".".join(parts[1:]) 
 
 # parsers
-
-def parse_pairs(filename:str)->pd.DataFrame:
+def read_comments(file, next_line=False)->list:
+    '''
+    Read comments from file.
+    Input:
+        file: file path or StringIO
+        next_line: whether to read next line after comments
+    Output:
+        list of comments
+    '''
+    comments = []
+    if isinstance(file, StringIO):
+        for line in file.getvalue().splitlines():
+            if line[0] != "#":
+                break
+            comments.append(line.strip("#\n"))
+    elif isinstance(file, str):
+        try:
+            with gzip.open(file,"rt") as f:
+                for line in f:
+                    if line[0] != "#":
+                        break
+                    comments.append(line.strip("#\n"))
+        except OSError:
+            with open(file,"rt") as f:
+                for line in f:
+                    if line[0] != "#":
+                        break
+                    comments.append(line.strip("#\n"))
+    if next_line:
+        return comments, line
+    else:
+        return comments
+def parse_pairs(filename)->pd.DataFrame:
     '''
     read from 4DN's standard .pairs format
     compatible with all hickit originated pairs-like format 
@@ -84,12 +117,7 @@ def parse_pairs(filename:str)->pd.DataFrame:
             "phase_prob10":"float",
             "phase_prob11":"float"}
     #read comment line
-    with gzip.open(filename,"rt") as f:
-        comments = []
-        for line in f.readlines():
-            if line[0] != "#":
-                break
-            comments.append(line)
+    comments, line = read_comments(filename, next_line=True)
     #infer number of columns
     line_length = len(line.strip().split("\t"))
     #pick used eles from builtin arrays
@@ -126,25 +154,7 @@ def parse_3dg(file:str, sorting=False)->pd.DataFrame:
     """
 
     ## read comments
-    comments = []
-    if isinstance(file, StringIO):
-        for line in file.getvalue().splitlines():
-            if line[0] != "#":
-                break
-            comments.append(line.strip("#\n"))
-    elif isinstance(file, str):
-        try:
-            with gzip.open(file,"rt") as f:
-                for line in f:
-                    if line[0] != "#":
-                        break
-                    comments.append(line.strip("#\n"))
-        except OSError:
-            with open(file,"rt") as f:
-                for line in f:
-                    if line[0] != "#":
-                        break
-                    comments.append(line.strip("#\n"))
+    comments = read_comments(file, next_line=False)
     ## read real positions
     s = pd.read_table(file, 
                       comment="#",header=None,
