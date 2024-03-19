@@ -141,7 +141,52 @@ def parse_gtf(filename:str) -> pd.DataFrame:
     gencode = pd.read_table(filename, comment="#", header=None)
     gencode.columns="seqname source feature start end score strand frame group".split()
     return gencode
-def parse_3dg(file:str, sorting=False)->pd.DataFrame:
+def check_index_binsize(s: pd.DataFrame) -> int:
+    """
+    Check if the index of s, considering its first level grouping, has sorted and consistent binsizes.
+    
+    The function assumes that the second level of the MultiIndex is numerical (e.g., genomic coordinates or timestamps).
+    It calculates the binsize for each group defined by the first level and returns a series with the binsizes.
+    If any inconsistency in binsize within a group is found, raises ValueError.
+
+    Input:
+        s: A pandas DataFrame with a MultiIndex where the first level represents chromosome names and the second level
+              represents positions or other values that should have a consistent difference (binsize).
+    Output:
+        binsize
+    """
+    
+    # Ensure the index is sorted
+    s = s.sort_index()
+
+    # Calculate binsizes per group based on the first level
+    # last 2 element is not used, because the last one is NaN and in some situations the second last one is partial binsize
+    # negative period is used to ensure first element is not NaN
+    result_dfs = []
+    for name, group in s.groupby(level=0):
+        new_df = pd.Series(
+            -group.index.get_level_values(1).diff(-1),
+            index = group.index
+            ).rename("binsizes").iloc[:-2]
+        result_dfs.append(new_df)
+    binsizes = pd.concat(result_dfs, axis=0).dropna().astype(int)
+    # binsizes = s.groupby(level=0).apply(
+    #     lambda df: pd.Series(
+    #         -df.index.get_level_values(1).diff(-1),
+    #         index = df.index
+    #         ).rename("binsizes").iloc[:-2]
+    #     ).dropna().astype(int)
+    if binsizes.empty:
+        print("Warning: No binsize found.")
+        # just use the first binsize
+        binsize = -s.index.get_level_values(1).diff()[0]
+    elif len(binsizes.unique()) > 1:
+        print("Warning: Inconsistent binsizes found in the input file %s" % binsizes.unique())
+        binsize = binsizes.dropna().unique()[0]
+    else:
+        binsize = binsizes.dropna().unique()[0]
+    return binsize
+def parse_3dg(file:str, sorting=False, s2m=False)->pd.DataFrame:
     """
     Read in hickit 3dg file(or the .xyz file)
     Norm chr name alias
@@ -149,6 +194,7 @@ def parse_3dg(file:str, sorting=False)->pd.DataFrame:
     Input:
         filename: file path
         sorting: whether to sort chromosome and positions
+        s2m: whether to use mid point of bin as position
     Output:
         3 col dataframe with 2-level multindex: (chrom, pos) x, y, z
     """
@@ -169,6 +215,12 @@ def parse_3dg(file:str, sorting=False)->pd.DataFrame:
         s.attrs["backbone_unit"] = backbone_unit    
     if sorting:
         s.sort_index(inplace=True)
+    if s2m:
+        binsize = check_index_binsize(s)
+        s.index = pd.MultiIndex.from_arrays(
+            [s.index.get_level_values(0), s.index.get_level_values(1) + binsize//2],
+            names=["chr","pos"]
+        )
     return s
 def parse_ref(filename:str, index=False, header=None, value_name="value") -> pd.DataFrame:
     """
@@ -218,9 +270,26 @@ def parse_seg(filename:str) -> tuple:
     return comments, segs
 
 # writers
-
-def write_3dg(pairs:pd.DataFrame, outname:str):
-    pairs.to_csv(outname, sep="\t",header=None)
+def m2s_index(_3dg:pd.DataFrame)->pd.DataFrame:
+    '''
+    Convert from middle-as-pos to start-as-pos
+    Input:
+        a structure dataframe with 2-level multiindex
+    Output:
+        a structure dataframe with 2-level multiindex
+    '''
+    binsize = check_index_binsize(_3dg)
+    _3dg.index = pd.MultiIndex.from_arrays(
+        [_3dg.index.get_level_values(0), _3dg.index.get_level_values(1) - binsize//2],
+        names=["chr","pos"]
+    )
+    if _3dg.index.get_level_values(1).min() < 0:
+        raise ValueError("Negative position found in the dataframe, perhaps the dataframe has been converted to start-as-pos already.")
+    return _3dg
+def write_3dg(_3dg:pd.DataFrame, outname:str, m2s=False):
+    if m2s:
+        _3dg = m2s_index(_3dg)
+    _3dg.to_csv(outname, sep="\t",header=None)
     return 0
 def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''

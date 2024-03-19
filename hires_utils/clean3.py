@@ -66,7 +66,7 @@ def cli(args):
         clean_quantile = clean_quantile,
         max_clean_distance = max_clean_distance 
     )
-    write_3dg(good_structure, out_filename)
+    write_3dg(good_structure, out_filename, m2s=True) # convert to start
     return 0
 def clean3(s_name, con_name, clean_quantile, max_clean_distance):
     # clean poorly supported particles
@@ -76,7 +76,7 @@ def clean3(s_name, con_name, clean_quantile, max_clean_distance):
     # load data
     
     ## rescale 3dg
-    s = parse_3dg(s_name)
+    s = parse_3dg(s_name, s2m=True) # convert to middle
     backbone_unit = s.attrs["backbone_unit"]
     norm_factor = 1.0/backbone_unit
     s[["x","y","z"]] = s[["x","y","z"]] * norm_factor

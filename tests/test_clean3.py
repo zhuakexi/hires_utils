@@ -2,12 +2,12 @@ import unittest
 import sys
 sys.path.insert(0, "/share/home/ychi/dev/hires_utils")
 from io import StringIO
-from unittest.mock import MagicMock
 
 import pandas as pd
 import numpy as np
 
 from hires_utils.clean3 import clean3, get_legs, parse_3dg, parse_pairs
+from hires_utils.hires_io import m2s_index
 
 class TestClean3(unittest.TestCase):
     def setUp(self):
@@ -56,7 +56,10 @@ class TestClean3(unittest.TestCase):
 
         self.assertIsInstance(good_3dg, pd.DataFrame)
         # old version, treat pos in 3dg as middle of bin
-        remain_pos = [40000, 60000, 80000]
+        # remain_pos = [40000, 60000, 80000]
+        # new version, treat pos in 3dg as start of bin
+        good_3dg = m2s_index(good_3dg)
+        remain_pos = [20000, 40000, 80000]
         self.assertTrue(all(good_3dg.index.get_level_values("pos").isin(remain_pos)))
         # newer version, treat pos in 3dg as start of bin
 
