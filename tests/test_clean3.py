@@ -62,6 +62,16 @@ class TestClean3(unittest.TestCase):
         remain_pos = [20000, 40000, 80000]
         self.assertTrue(all(good_3dg.index.get_level_values("pos").isin(remain_pos)))
         # newer version, treat pos in 3dg as start of bin
+    
+    def test_clean3_real(self):
+        _3dg_p = "/sharec/ychi/repo/sperm64_hg/3dg/HuS08_HuSS3095.20k.1.3dg"
+        pairs_p = "/sharec/ychi/repo/sperm64_hg/pairs_c12/HuS08_HuSS3095.c12.pairs.gz"
+        good_3dg = clean3(
+            _3dg_p, pairs_p, self.clean_quantile, self.max_clean_distance
+        
+        )
+        print(good_3dg)
+        self.assertIsInstance(good_3dg, pd.DataFrame)
 
 if __name__ == '__main__':
     unittest.main()

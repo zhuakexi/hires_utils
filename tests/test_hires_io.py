@@ -20,5 +20,11 @@ class Test_hires_io(unittest.TestCase):
         _3dg = parse_3dg(self._3dg_path, s2m=True)
         print(_3dg.head())
         self.assertIsInstance(_3dg, pd.DataFrame)
+    def test_parse_pairs(self):
+        pairs = parse_pairs(
+            "/shareb/ychi/repo/sperm_struct/ds_pipeline/smk/new_clean/c2m5_c2d3000000/pairs_c12/HuS08_HuSS3078.c12.pairs.gz"
+        )
+        print(pairs.head())
+        self.assertIsInstance(pairs, pd.DataFrame)
 if __name__ == "__main__":
     unittest.main()
