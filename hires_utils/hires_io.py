@@ -64,6 +64,16 @@ def divide_name(filename):
         return parts[0], "."+".".join(parts[1:]) 
 
 # parsers
+def get_comment_content(line:str)->str:
+    '''
+    Get content from comment line
+    Input:
+        line: a comment line
+    Output:
+        content of the comment line
+    '''
+    # "## pairs format v1.0" has double #, removeprefix only remove one
+    return line.strip("\n").removeprefix("#")
 def read_comments(file, next_line=False)->list:
     '''
     Read comments from file.
@@ -78,21 +88,31 @@ def read_comments(file, next_line=False)->list:
         for line in file.getvalue().splitlines():
             if line[0] != "#":
                 break
-            comments.append(line.strip("#\n"))
-    elif isinstance(file, str):
+            comments.append(
+                get_comment_content(line)
+            )
+    elif isinstance(file, str) or isinstance(file, Path):
         try:
             with gzip.open(file,"rt") as f:
                 for line in f:
                     if line[0] != "#":
                         break
-                    comments.append(line.strip("#\n"))
+                    comments.append(
+                        get_comment_content(line)
+                    )
         except OSError:
             with open(file,"rt") as f:
                 for line in f:
                     if line[0] != "#":
                         break
-                    comments.append(line.strip("#\n"))
+                    comments.append(
+                        get_comment_content(line)
+                    )
+    else:
+        raise ValueError("file should be a string, Path or StringIO object.")
     if next_line:
+        # also return the first line of the table
+        # used to infer column length
         return comments, line
     else:
         return comments
@@ -300,9 +320,12 @@ def write_pairs(pairs:pd.DataFrame, out_name:str):
     '''
     #sys.stderr.write("write to %s\n" % out_name)
     with gzip.open(out_name,"wt") as f:
+        # replace with real column names
         pairs.attrs["comments"].pop()
-        pairs.attrs["comments"].append("#columns:" + "\t".join(pairs.columns) + "\n")
-        f.write("".join(pairs.attrs["comments"]))
+        pairs.attrs["comments"].append("columns:" + "\t".join(pairs.columns))
+        # write comments
+        for comment in pairs.attrs["comments"]:
+            f.write("#" + comment + "\n")
         pairs.to_csv(f, sep="\t", header=False, index=False, mode="a")
 
 # [pipeline] json metrics recorder
