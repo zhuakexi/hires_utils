@@ -13,3 +13,4 @@ __init__.pyc
 #on jupyter notebook
 *.ipynb
 .ipynb_checkpoints/
+tests/output/*
