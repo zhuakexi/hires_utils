@@ -73,7 +73,11 @@ def get_comment_content(line:str)->str:
         content of the comment line
     '''
     # "## pairs format v1.0" has double #, removeprefix only remove one
-    return line.strip("\n").removeprefix("#")
+    line = line.strip("\n")
+    if line[0] == "#":
+        line = line[1:]
+    #return line.strip("\n").removeprefix("#")
+    return line
 def read_comments(file, next_line=False)->list:
     '''
     Read comments from file.
@@ -185,7 +189,7 @@ def check_index_binsize(s: pd.DataFrame) -> int:
     result_dfs = []
     for name, group in s.groupby(level=0):
         new_df = pd.Series(
-            -group.index.get_level_values(1).diff(-1),
+            (-group.index.get_level_values(1).to_series().diff(-1)).tolist(),
             index = group.index
             ).rename("binsizes").iloc[:-2]
         result_dfs.append(new_df)
@@ -199,7 +203,7 @@ def check_index_binsize(s: pd.DataFrame) -> int:
     if binsizes.empty:
         print("Warning: No binsize found.")
         # just use the first binsize
-        binsize = -s.index.get_level_values(1).diff()[0]
+        binsize = (-s.index.get_level_values(1).to_series().diff(-1))[0]
     elif len(binsizes.unique()) > 1:
         print("Warning: Inconsistent binsizes found in the input file %s" % binsizes.unique())
         binsize = binsizes.dropna().unique()[0]
