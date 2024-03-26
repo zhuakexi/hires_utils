@@ -1,16 +1,18 @@
-import unittest
+import os
 import sys
 sys.path.insert(0, "/share/home/ychi/dev/hires_utils")
+import unittest
 from io import StringIO
 
 import pandas as pd
 import numpy as np
 
 from hires_utils.clean3 import clean3, get_legs, parse_3dg, parse_pairs
-from hires_utils.hires_io import m2s_index
+from hires_utils.hires_io import m2s_index, write_3dg
 
 class TestClean3(unittest.TestCase):
     def setUp(self):
+        self.output_dir = os.path.join(os.path.dirname(__file__), "output")
         self.clean_quantile = 0.26
         self.max_clean_distance = 10000
         
@@ -71,6 +73,19 @@ class TestClean3(unittest.TestCase):
         
         )
         print(good_3dg)
+        self.assertIsInstance(good_3dg, pd.DataFrame)
+    def test_clean3_real2(self):
+        _3dg_p = "/sharec/ychi/repo/sperm67_validate/3dg/OTH012.1m.1.3dg"
+        pairs_p = "/sharec/ychi/repo/sperm67_validate/pairs_c12/OTH012.c12.pairs.gz"
+        out_filename = os.path.join(
+            self.output_dir, "OTH012.1m.1.3dg"
+        )
+
+        good_3dg = clean3(
+            _3dg_p, pairs_p, 0.06, 500_000
+        )
+        print(good_3dg)
+        write_3dg(good_3dg, out_filename, m2s=True)
         self.assertIsInstance(good_3dg, pd.DataFrame)
 
 if __name__ == '__main__':

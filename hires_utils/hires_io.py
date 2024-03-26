@@ -205,8 +205,12 @@ def check_index_binsize(s: pd.DataFrame) -> int:
         # just use the first binsize
         binsize = (-s.index.get_level_values(1).to_series().diff(-1))[0]
     elif len(binsizes.unique()) > 1:
-        print("Warning: Inconsistent binsizes found in the input file %s" % binsizes.unique())
-        binsize = binsizes.dropna().unique()[0]
+        #min_binsize = binsizes.min()
+        majority_binsize = binsizes.mode().iloc[0]
+        binsize = majority_binsize
+        print(
+            "Warning: Inconsistent binsizes found in the input file %s, choose %s" % (binsizes.unique(), binsize)
+            )
     else:
         binsize = binsizes.dropna().unique()[0]
     return binsize
