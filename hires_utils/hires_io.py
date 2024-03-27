@@ -187,7 +187,7 @@ def check_index_binsize(s: pd.DataFrame) -> int:
     # last 2 element is not used, because the last one is NaN and in some situations the second last one is partial binsize
     # negative period is used to ensure first element is not NaN
     result_dfs = []
-    for name, group in s.groupby(level=0):
+    for name, group in s.groupby(level=0, observed=True):
         new_df = pd.Series(
             (-group.index.get_level_values(1).to_series().diff(-1)).tolist(),
             index = group.index
@@ -214,6 +214,30 @@ def check_index_binsize(s: pd.DataFrame) -> int:
     else:
         binsize = binsizes.dropna().unique()[0]
     return binsize
+def s2m_index(pos_df:pd.DataFrame, binsize=None)->pd.DataFrame:
+    """
+    Transform start-as-pos to middle-as-pos.
+    Input:
+        pos_df: a dataframe with 2-level multiindex [chr, pos]
+        binsize: if not given, will calculate from the dataframe
+    Output:
+        a dataframe with 2-level multiindex [chr, pos]
+    """
+    pos_df = pos_df.copy()
+    INDEX_ONLY = False # input is index only
+    if isinstance(pos_df, pd.MultiIndex):
+        pos_df = pos_df.to_frame()
+        INDEX_ONLY = True
+    if binsize is None:
+        binsize = check_index_binsize(pos_df)
+    pos_df.index = pd.MultiIndex.from_arrays(
+        [pos_df.index.get_level_values(0), pos_df.index.get_level_values(1) + binsize//2],
+        names=["chr","pos"]
+    )
+    if INDEX_ONLY:
+        return pos_df.index
+    else:
+        return pos_df
 def parse_3dg(file:str, sorting=False, s2m=False)->pd.DataFrame:
     """
     Read in hickit 3dg file(or the .xyz file)
@@ -225,6 +249,10 @@ def parse_3dg(file:str, sorting=False, s2m=False)->pd.DataFrame:
         s2m: whether to use mid point of bin as position
     Output:
         3 col dataframe with 2-level multindex: (chrom, pos) x, y, z
+    Note:
+        s2m only works for hickit-flavored binning, the size of the last bin is between > 0.5 * binsize and < 1.5 * binsize
+        this guarantee the +0.5 * binsize operation in the last bin is always in legal genome range.
+        For bedtools and cooler-flavored binning, the last bin is just <= binsize, so +0.5 * binsize is not always legal.
     """
 
     ## read comments
@@ -298,15 +326,17 @@ def parse_seg(filename:str) -> tuple:
     return comments, segs
 
 # writers
-def m2s_index(_3dg:pd.DataFrame)->pd.DataFrame:
+def m2s_index(_3dg:pd.DataFrame, binsize=None)->pd.DataFrame:
     '''
     Convert from middle-as-pos to start-as-pos
     Input:
-        a structure dataframe with 2-level multiindex
+        _3dg: a structure dataframe with 2-level multiindex
+        binsize: if not given, will calculate from the dataframe
     Output:
         a structure dataframe with 2-level multiindex
     '''
-    binsize = check_index_binsize(_3dg)
+    if binsize is None:
+        binsize = check_index_binsize(_3dg)
     _3dg.index = pd.MultiIndex.from_arrays(
         [_3dg.index.get_level_values(0), _3dg.index.get_level_values(1) - binsize//2],
         names=["chr","pos"]
