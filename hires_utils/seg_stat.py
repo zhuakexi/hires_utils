@@ -54,10 +54,14 @@ def seg_values(filename:str)->tuple:
     res = pd.concat([defaults, cp_count], axis=1, join="outer").iloc[:,0]
     res.fillna(0,inplace=True)
     
-    u, a, b = res.drop(["chrX","chrY"],level=0).groupby("phasing").sum()
-    Xu, Xa, Xb = res["chrX"]
-    Y = res["chrY"].sum()
-    X = res["chrX"].sum()
+    valid_sex_chroms = [
+        sex_chrom for sex_chrom in ["chrX","chrY"]
+        if sex_chrom in res.index.get_level_values(0).unique()
+    ]
+    u, a, b = res.drop(valid_sex_chroms,level=0).groupby("phasing").sum()
+    Xu, Xa, Xb = res["chrX"] if "chrX" in valid_sex_chroms else (0,0,0)
+    Y = res["chrY"].sum() if "chrY" in valid_sex_chroms else 0
+    X = res["chrX"].sum() if "chrX" in valid_sex_chroms else 0
     
     try:
         xp = X / (a+b+u) # x percent
